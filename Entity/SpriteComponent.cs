@@ -1,35 +1,24 @@
-﻿using Fizzleon.Entity;
+﻿namespace Fizzleon.Entity;
 
 internal class SpriteComponent : Component
 {
     public Texture2D Texture { get; set; }
     public ITransformable Transform { get; set; }
-
-    public SpriteComponent(Texture2D texture)
-    {
-        Texture = texture;
-    }
-
-    public void SetTransform(ITransformable transform)
-    {
-        Transform = transform;
-    }
-
+    public SpriteComponent(Texture2D texture) => Texture = texture;
+    public void SetTransform(ITransformable transform) => Transform = transform;
     public void Draw(SpriteBatch spriteBatch)
     {
-        if (spriteBatch != null && !spriteBatch.IsDisposed && Transform != null)
-        {
+        if (spriteBatch is { IsDisposed: false } && Transform is { } transformable)
             spriteBatch.Draw(
                 Texture,
-                Transform.Position,
+                transformable.Position,
                 null,
                 Color.White,
-                Transform.Rotation,
+                transformable.Rotation,
                 Vector2.Zero,
-                Transform.Scale,
+                transformable.Scale,
                 SpriteEffects.None,
                 0f
             );
-        }
     }
 }

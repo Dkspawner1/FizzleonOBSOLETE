@@ -1,4 +1,4 @@
-﻿using Fizzleon.Entity;
+﻿namespace Fizzleon.Entity;
 
 internal class TransformComponent : Component, ITransformable
 {
