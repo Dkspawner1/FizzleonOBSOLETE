@@ -2,7 +2,7 @@
 using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
 
-namespace Fizzleon.Entity
+namespace Fizzleon.FizzleEntity
 {
     internal class RenderSystem : EntityDrawSystem
     {

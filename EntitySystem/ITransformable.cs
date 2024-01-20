@@ -1,4 +1,4 @@
-﻿namespace Fizzleon.Entity;
+﻿namespace Fizzleon.FizzleEntity;
 
 internal interface ITransformable
 {

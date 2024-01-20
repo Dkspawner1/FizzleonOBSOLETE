@@ -1,4 +1,4 @@
-﻿using Fizzleon.Entity;
+﻿using Fizzleon.FizzleEntity;
 using MonoGame.Extended;
 using MonoGame.Extended.Entities;
 
