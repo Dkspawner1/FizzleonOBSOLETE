@@ -1,5 +1,4 @@
-﻿
-namespace Fizzleon.ECS;
+﻿namespace Fizzleon.ECS.Components;
 public class MovementComponent : Component
 {
     public Vector2 Velocity { get; set; } = Vector2.Zero;

@@ -1,71 +1,80 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
-using MonoGame.Extended.Entities.Systems;
+using MonoGame.Extended.Entities;
 
 using static Fizzleon.Core.Data.GameState;
-using static Fizzleon.Core.Data.GameState.GameStates;
 
 namespace Fizzleon.Scenes
 {
-    internal class GameStateManager : IScene
+    internal class GameStateManager : List<IScene>
     {
-        private readonly List<IScene> scenes = new List<IScene>();
+        private readonly Game1 instance;
         private IScene currentScene;
-      
 
-        public void AddScene(IScene scene)
+        private GameScene gameScene;
+        private MenuScene menuScene;
+
+        public GameStateManager(Game1 instance) => this.instance = instance;
+
+        public void InitializeScenes()
         {
-            scenes.Add(scene);
+            menuScene = new MenuScene(instance);
+            gameScene = new GameScene(instance);
         }
 
-        List<EntitySystem> IScene.Entities => null;
 
-        List<EntitySystem> IScene.Systems => null;
-
-        public void LoadContent()
+        public void AddSceneWithEntities(IScene scene, params Entity[] entities)
         {
-            var interfaceMethods = typeof(IScene)
-                .GetInterfaces()
-                .Select(x => typeof(IScene).GetInterfaceMap(x))
-                .SelectMany(x => x.TargetMethods).ToArray();
-
-            var propsNotFromInterface = typeof(IScene)
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.FlattenHierarchy)
-                .Where(x => !x.GetAccessors(true).Any(y => interfaceMethods.Contains(y))).ToArray();
-
-            Trace.WriteLine(propsNotFromInterface.Length);
+            scene.Entities.AddRange(entities);
+            Add(scene);
         }
 
-        public void Update(float deltaTime)
+        public void AddScene(IScene scene) => Add(scene);
+
+        public void LoadContent(ContentManager Content)
         {
-            switch (CurrentState)
+            menuScene = new MenuScene(instance);
+            gameScene = new GameScene(instance);
+
+            AddScene(menuScene);
+            AddScene(gameScene);
+            ForEach(scene => scene.LoadContent(Content));
+            SetCurrentScene(menuScene);
+        }
+
+
+
+        public void Update(GameTime gameTime)
+        {
+            switch (currentScene)
             {
-                case MENU:
+                case MenuScene:
+                    currentScene = menuScene;
+                    currentScene?.Update(gameTime);
                     break;
-                case GAME:
+                case GameScene:
+                    currentScene?.Update(gameTime);
                     break;
-                case SETTINGS:
+            }
+
+        }
+
+        public void Draw(GameTime gameTime)
+        {
+            switch (currentScene)
+            {
+                case MenuScene:
+                    currentScene?.Draw(gameTime);
                     break;
-                case EXIT:
+                case GameScene:
+                    currentScene?.Draw(gameTime);
                     break;
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public void SetCurrentScene(IScene scene)
         {
-            switch (CurrentState)
-            {
-                case MENU:
-                    break;
-                case GAME:
-                    break;
-                case SETTINGS:
-                    break;
-                case EXIT:
-                    break;
-            }
+            currentScene = scene;
         }
     }
 }

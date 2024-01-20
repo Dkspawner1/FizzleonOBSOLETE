@@ -1,5 +1,4 @@
-﻿namespace Fizzleon.FizzleEntity;
-
+﻿namespace Fizzleon.ECS.Components;
 internal interface ITransformable
 {
     Vector2 Position { get; set; }

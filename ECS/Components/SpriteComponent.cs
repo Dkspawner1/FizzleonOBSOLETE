@@ -1,11 +1,18 @@
-﻿namespace Fizzleon.FizzleEntity;
+﻿
+namespace Fizzleon.ECS.Components;
 
 internal class SpriteComponent : Component
 {
     public Texture2D Texture { get; set; }
     public ITransformable Transform { get; set; }
-    public SpriteComponent(Texture2D texture) => Texture = texture;
+
+    public SpriteComponent(Texture2D texture)
+    {
+        Texture = texture;
+    }
+
     public void SetTransform(ITransformable transform) => Transform = transform;
+
     public void Draw(SpriteBatch spriteBatch)
     {
         if (spriteBatch is { IsDisposed: false } && Transform is { } transformable)

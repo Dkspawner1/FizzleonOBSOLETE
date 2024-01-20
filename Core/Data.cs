@@ -22,7 +22,7 @@ public record Data
     public readonly record struct GameState
     {
         public enum GameStates { MENU, GAME, SETTINGS, EXIT }
-        public static GameStates CurrentState { get; } = GameStates.MENU;
+        public static GameStates CurrentState { get; set; } = GameStates.MENU;
     }
 
 }

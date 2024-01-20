@@ -1,14 +1,18 @@
 ﻿using System.Collections.Generic;
+using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
 
 namespace Fizzleon.Scenes
 {
     public interface IScene
     {
-        protected List<EntitySystem> Entities { get; }
+
+        public List<Entity> Entities { get; }
+
+        protected Data.GameState.GameStates SceneId { get; }
         protected List<EntitySystem> Systems { get; }
-        protected void LoadContent();
-        protected void Update(float deltaTime);
-        protected void Draw(SpriteBatch spriteBatch);
+        protected internal void LoadContent(ContentManager Content);
+        protected internal void Update(GameTime gameTime);
+        protected internal void Draw(GameTime gameTime);
     }
 }
