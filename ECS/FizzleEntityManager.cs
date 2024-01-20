@@ -14,9 +14,9 @@ namespace Fizzleon.ECS
             this.world = worldBuilder.Build();
         }
 
-        public MonoGame.Extended.Entities.Entity CreateEntity() => world.CreateEntity();
+        public Entity CreateEntity() => world.CreateEntity();
 
-        public MonoGame.Extended.Entities.Entity CreateEntityWithComponents(params Component[] components)
+        public Entity CreateEntityWithComponents(params Component[] components)
         {
             var entity = CreateEntity();
             entity.Attach(components);
