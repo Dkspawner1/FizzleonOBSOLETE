@@ -1,4 +1,6 @@
-﻿namespace Fizzleon.FizzleEntity;
+﻿using Fizzleon.ECS.Components;
+
+namespace Fizzleon.ECS;
 
 internal class TransformComponent : Component, ITransformable
 {

@@ -1,4 +1,4 @@
-﻿namespace Fizzleon.FizzleEntity
+﻿namespace Fizzleon.ECS.Components
 {
     // This is the base class which each entity will inherit
     // Each entity will be assigned an ID and this class's ID will-Be
