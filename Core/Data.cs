@@ -9,6 +9,7 @@ public record Data
         public static string Title { get; set; } = "FizzleOn!";
         public static int Width { get; set; } = 1600;
         public static int Height { get; set; } = 900;
+        public static bool Exit { get; set; } = false;
     };
 
     public readonly record struct Game
@@ -22,7 +23,7 @@ public record Data
     public readonly record struct GameState
     {
         public enum GameStates { MENU, GAME, SETTINGS, EXIT }
-        public static GameStates CurrentState { get; set; } = GameStates.MENU;
+        //public static GameStates CurrentState { get; set; } = GameStates.MENU;
     }
 
 }

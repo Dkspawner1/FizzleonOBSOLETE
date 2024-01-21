@@ -9,7 +9,7 @@ namespace Fizzleon.Scenes
 
         public List<Entity> Entities { get; }
 
-        protected Data.GameState.GameStates SceneId { get; }
+        public Data.GameState.GameStates SceneId { get; }
         protected List<EntitySystem> Systems { get; }
         protected internal void LoadContent(ContentManager Content);
         protected internal void Update(GameTime gameTime);
