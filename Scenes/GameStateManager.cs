@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using MonoGame.Extended.Entities;
 
@@ -8,18 +9,17 @@ namespace Fizzleon.Scenes
 {
     internal class GameStateManager : List<IScene>
     {
-        private readonly Game1 instance;
         private IScene currentScene;
 
         private GameScene gameScene;
         private MenuScene menuScene;
 
-        public GameStateManager(Game1 instance) => this.instance = instance;
 
         public void InitializeScenes()
         {
-            menuScene = new MenuScene(instance);
-            gameScene = new GameScene(instance);
+
+            menuScene = new MenuScene();
+            gameScene = new GameScene();
         }
 
 
@@ -29,15 +29,15 @@ namespace Fizzleon.Scenes
             Add(scene);
         }
 
-        public void AddScene(IScene scene) => Add(scene);
 
         public void LoadContent(ContentManager Content)
         {
-            menuScene = new MenuScene(instance);
-            gameScene = new GameScene(instance);
+            menuScene = new MenuScene();
+            gameScene = new GameScene();
 
-            AddScene(menuScene);
-            AddScene(gameScene);
+            Add(menuScene);
+            Add(gameScene);
+
             ForEach(scene => scene.LoadContent(Content));
             SetCurrentScene(menuScene);
         }
@@ -46,35 +46,52 @@ namespace Fizzleon.Scenes
 
         public void Update(GameTime gameTime)
         {
-            switch (currentScene)
+            var gameComponents = Game1.Instance.Components;
+            
+            switch (currentScene.SceneId)
             {
-                case MenuScene:
-                    currentScene = menuScene;
-                    currentScene?.Update(gameTime);
+                case GameStates.MENU:
+                    menuScene.Update(gameTime);
+
+                    if (menuScene.SwitchToGameScene)
+                    {
+                        Game1.Instance.Components.Clear();
+                        SetCurrentScene(gameScene);
+                    }
+
                     break;
-                case GameScene:
-                    currentScene?.Update(gameTime);
+                case GameStates.GAME:
+                    gameScene.Update(gameTime);
+                    break;
+                case GameStates.SETTINGS:
+                    break;
+                case GameStates.EXIT:
+                    break;
+                default:
                     break;
             }
 
         }
+
+ 
 
         public void Draw(GameTime gameTime)
         {
-            switch (currentScene)
+            switch (currentScene.SceneId)
             {
-                case MenuScene:
-                    currentScene?.Draw(gameTime);
+                case GameStates.MENU:
+                    menuScene.Draw(gameTime);
                     break;
-                case GameScene:
-                    currentScene?.Draw(gameTime);
+                case GameStates.GAME:
+                    gameScene.Draw(gameTime);
+                    break;
+                case GameStates.SETTINGS:
+                    break;
+                case GameStates.EXIT:
                     break;
             }
         }
 
-        public void SetCurrentScene(IScene scene)
-        {
-            currentScene = scene;
-        }
+        public void SetCurrentScene(IScene scene) => currentScene = scene;
     }
 }

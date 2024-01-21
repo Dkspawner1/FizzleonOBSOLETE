@@ -11,7 +11,6 @@ using static Data.Game;
 
 public class GameScene : IScene, IGameComponent
 {
-    private Game1 instance { get; }
 
     public List<Entity> Entities { get; } = new List<Entity>();
 
@@ -19,24 +18,24 @@ public class GameScene : IScene, IGameComponent
 
     public List<EntitySystem> Systems { get; } = new List<EntitySystem>();
 
-    public GameScene(Game1 instance)
+
+    public GameScene()
     {
-        this.instance = instance;
         Initialize();
     }
 
     public void Initialize()
     {
+
         WorldBuilder = new WorldBuilder();
         WorldBuilder.AddSystem(new RenderSystem());
         World = WorldBuilder.Build();
-        instance.Components.Add(World);
     }
 
     private Texture2D s;
     public void LoadContent(ContentManager Content)
     {
-        s = instance.Content.Load<Texture2D>("Textures/Idle Down_Spritesheet (big)");
+        s = Game1.Instance.Content.Load<Texture2D>("Textures/Idle Down_Spritesheet (big)");
 
         // Create entities and add them to the game scene
         var entity1 = World.CreateEntity();
@@ -56,11 +55,7 @@ public class GameScene : IScene, IGameComponent
         var sprite3 = new SpriteComponent(s);
         sprite3.SetTransform(entity3.Get<TransformComponent>());
         entity3.Attach(sprite3);
-
-
     }
-
-    public void UnloadContent() => World.Dispose();
 
     public void Update(GameTime gameTime)
     {

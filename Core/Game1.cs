@@ -8,15 +8,16 @@ using static Data.Window;
 public class Game1 : Game
 {
     private readonly GameStateManager gameStateManager;
+    public static Game1 Instance { get; private set; }
 
     public Game1()
     {
         Graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-
+        Instance = this;
         Window.Title = Title;
         IsMouseVisible = true;
-        gameStateManager = new(this);
+        gameStateManager = new();
     }
 
     protected override void Initialize()
@@ -26,8 +27,7 @@ public class Game1 : Game
         Graphics.ApplyChanges();
 
         gameStateManager.InitializeScenes();
-
-
+        
         base.Initialize();
     }
 
@@ -42,6 +42,9 @@ public class Game1 : Game
 
     protected override void Update(GameTime gameTime)
     {
+        if (Data.Window.Exit)
+            Exit();
+
         gameStateManager.Update(gameTime);
 
         base.Update(gameTime);
