@@ -1,7 +1,6 @@
 ﻿using Fizzleon.ECS.Systems;
 using System.Collections.Generic;
 using MonoGame.Extended.Entities;
-using System.Diagnostics;
 
 namespace Fizzleon.Scenes;
 
@@ -42,7 +41,6 @@ public class MenuScene : IScene, IGameComponent
             buttons.Add(Content.Load<Texture2D>($"textures/btn{i}"));
             buttonsRect.Add(new Rectangle(0, 125 + i * 150, buttons[i].Width / 4, buttons[i].Height / 4));
         }
-        Trace.WriteLine("MenuScene's Content Loaded!");
     }
 
     private MouseState mouse, oldMouse;

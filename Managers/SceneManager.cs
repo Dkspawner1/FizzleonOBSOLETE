@@ -12,7 +12,10 @@ namespace Fizzleon.Managers
     public class SceneManager : List<IScene>, IGameComponent
     {
         public event EventHandler<SceneChangedEventArgs> SceneChanged;
-        private SceneChangeListener sceneChangeListener;
+        //public event EventHandler<RequestSceneChangeEventArgs> RequestSceneChangeRequested;
+
+        private static SceneChangeListener sceneChangeListener;  
+
         public IScene CurrentScene { get; set; }
 
         protected GameScene gameScene;
@@ -37,9 +40,8 @@ namespace Fizzleon.Managers
                 Add(scene);
             }
 
-            Add(menuScene);
-            Add(gameScene);
             sceneChangeListener = new SceneChangeListener(this);
+ 
         }
 
         public void LoadContent(ContentManager Content)
@@ -95,23 +97,26 @@ namespace Fizzleon.Managers
             }
         }
 
-        private void RequestSceneChange(in IScene currentScene, IScene targetScene)
+        // Preps the scene to change and disposes the assets
+        private void RequestSceneChange<Tcurrent, TTarget>(Tcurrent currentScene, TTarget targetScene) where Tcurrent : IScene, new() where TTarget : IScene, new()
         {
-            // Cleanup and change the scene
             Game1.Instance.Components.Clear();
             ChangeScene(targetScene);
             currentScene.Dispose();
         }
 
+        // This event will attempt to load the content after being dispoed during the request
         private void ChangeScene(IScene newScene)
         {
-            SceneChanged?.Invoke(this, new SceneChangedEventArgs($"Changing to ({newScene.SceneId}): {newScene}"));
+            string sceneChangeMessage = $"Changing to ({newScene.SceneId}): {newScene} test";
+            SceneChanged?.Invoke(this, new SceneChangedEventArgs(sceneChangeMessage, CurrentScene?.SceneId.ToString(), newScene.SceneId.ToString()));
+
             CurrentScene = newScene;
 
-            // Load content for the new scene if needed
-            newScene.LoadContent(Game1.Instance.Content); // Assuming ContentManagerInstance is available
+            newScene.LoadContent(Game1.Instance.Content);
 
-            SceneChanged?.Invoke(this, new SceneChangedEventArgs($"Changed to ({newScene.SceneId}): {newScene}"));
+            string sceneChangedMessage = $"Changed to ({newScene.SceneId}): {newScene}";
+            SceneChanged?.Invoke(this, new SceneChangedEventArgs(sceneChangedMessage, CurrentScene?.SceneId.ToString(), newScene.SceneId.ToString()));
         }
     }
 }

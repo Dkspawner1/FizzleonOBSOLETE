@@ -1,6 +1,4 @@
-﻿using MonoGame.Extended.Entities;
-
-namespace Fizzleon.Core;
+﻿namespace Fizzleon.Core;
 
 public record Data
 {

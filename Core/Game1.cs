@@ -1,6 +1,5 @@
 ﻿using Fizzleon.Managers;
-using Fizzleon.Scenes;
-using System.Diagnostics;
+using System;
 
 namespace Fizzleon.Core
 {
@@ -27,15 +26,21 @@ namespace Fizzleon.Core
 
         protected override void Initialize()
         {
-            sceneManager.Initialize();
-            Graphics.PreferredBackBufferWidth = Width;
-            Graphics.PreferredBackBufferHeight = Height;
-            Graphics.ApplyChanges();
+            try
+            {
+                sceneManager.Initialize();
+                Graphics.PreferredBackBufferWidth = Width;
+                Graphics.PreferredBackBufferHeight = Height;
+                Graphics.ApplyChanges();
 
-            var serverPort = network.StartServer(7000, 10, 1000);
-            
-            network.ConnectToServer("127.0.0.1", serverPort);
-
+                var serverPort = network.StartServer(7000, 10, 1000);
+                network.ConnectToServer("127.0.0.1", serverPort);
+            }
+            catch (Exception ex)
+            {
+                // Handle the exception (log, display an error message, etc.)
+                Trace.WriteLine($"Initialization failed: {ex.Message}");
+            }
             base.Initialize();
         }
 

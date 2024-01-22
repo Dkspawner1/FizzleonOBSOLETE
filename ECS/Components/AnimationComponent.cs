@@ -3,7 +3,6 @@ using MonoGame.Extended.Serialization;
 using MonoGame.Extended.Sprites;
 using MonoGame.Extended.TextureAtlases;
 using System;
-using System.Diagnostics;
 
 namespace Fizzleon.ECS.Components
 {
@@ -16,12 +15,12 @@ namespace Fizzleon.ECS.Components
         public AnimationComponent(string pathToSF, Texture2D texture) : base(texture)
         {
             PathToSF = pathToSF;
+            SpriteSheet = Game1.Instance.Content.Load<SpriteSheet>(PathToSF, new JsonContentLoader());
+
+            AnimatedSprite = new AnimatedSprite(SpriteSheet);
         }
         public void LoadContent(ContentManager Content)
         {
-            SpriteSheet = Content.Load<SpriteSheet>(PathToSF, new JsonContentLoader());
-
-            AnimatedSprite = new AnimatedSprite(SpriteSheet);
         }
         public void Update(GameTime gameTime)
         {

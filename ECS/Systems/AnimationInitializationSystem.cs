@@ -1,8 +1,6 @@
 ﻿using Fizzleon.ECS.Components;
 using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
-using System;
-using System.Diagnostics;
 
 namespace Fizzleon.ECS.Systems
 {
