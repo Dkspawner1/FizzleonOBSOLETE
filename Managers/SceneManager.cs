@@ -16,10 +16,24 @@ public class SceneManager : List<IScene>, IGameComponent
     protected GameScene gameScene;
     protected MenuScene menuScene;
 
+    protected Dictionary<GameStates, IScene> scenes;
+
     public void Initialize()
     {
         menuScene = new MenuScene();
         gameScene = new GameScene();
+
+        scenes = new Dictionary<GameStates, IScene>{
+        { GameStates.MENU, menuScene },
+        { GameStates.GAME, gameScene }};
+        
+        foreach (var scene in scenes.Values)
+        {
+            scene.Initialize();
+            Add(scene);
+
+        }
+
         Add(menuScene);
         Add(gameScene);
         sceneChangeListener = new SceneChangeListener(this);

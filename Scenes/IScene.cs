@@ -6,7 +6,7 @@ using static Fizzleon.Core.Data.GameState;
 
 namespace Fizzleon.Scenes
 {
-    public interface IScene
+    public interface IScene : IGameComponent
     {
         public GameStates SceneId { get; }
         protected World world { get; set; }
