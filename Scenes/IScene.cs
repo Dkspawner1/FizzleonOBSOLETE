@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
 
@@ -6,7 +7,7 @@ using static Fizzleon.Core.Data.GameState;
 
 namespace Fizzleon.Scenes
 {
-    public interface IScene : IGameComponent
+    public interface IScene : IGameComponent, IDisposable
     {
         public GameStates SceneId { get; }
         protected internal World World { get; set; }

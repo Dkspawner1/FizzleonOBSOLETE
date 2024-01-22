@@ -42,6 +42,7 @@ public class MenuScene : IScene, IGameComponent
             buttons.Add(Content.Load<Texture2D>($"textures/btn{i}"));
             buttonsRect.Add(new Rectangle(0, 125 + i * 150, buttons[i].Width / 4, buttons[i].Height / 4));
         }
+        Trace.WriteLine("MenuScene's Content Loaded!");
     }
 
     private MouseState mouse, oldMouse;
@@ -73,6 +74,12 @@ public class MenuScene : IScene, IGameComponent
         }
         SpriteBatch.End();
 
+    }
+
+    public void Dispose()
+    {
+        buttons.Clear();
+        World.Dispose();
     }
 }
 
