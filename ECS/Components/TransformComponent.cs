@@ -1,8 +1,6 @@
-﻿using Fizzleon.ECS.Base;
+﻿namespace Fizzleon.ECS;
 
-namespace Fizzleon.ECS;
-
-internal class TransformComponent : ITransformable
+internal class TransformComponent 
 {
     public Vector2 Position { get; set; }
     public float Rotation { get; set; }

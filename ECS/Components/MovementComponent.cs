@@ -1,6 +1,4 @@
-﻿using MonoGame.Extended.Entities;
-
-namespace Fizzleon.ECS.Components;
+﻿namespace Fizzleon.ECS.Components;
 public class MovementComponent
 {
     public Vector2 Velocity { get; set; } = Vector2.Zero;
