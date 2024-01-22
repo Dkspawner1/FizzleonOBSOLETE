@@ -12,7 +12,7 @@ internal class SpriteComponent
 
     public void SetTransform(TransformComponent transform) => Transform = transform;
 
-    public void Draw(SpriteBatch spriteBatch)
+    public virtual void Draw(SpriteBatch spriteBatch)
     {
         if (spriteBatch is { IsDisposed: false } && Transform is { } transformable)
             spriteBatch.Draw(

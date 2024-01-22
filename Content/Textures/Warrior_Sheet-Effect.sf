@@ -1,0 +1,19 @@
+{
+  "textureAtlas": {
+    "texture": "Warrior_Sheet-Effect.png",
+    "regionWidth": 68,
+    "regionHeight": 44
+  },
+  "cycles": {
+    "runRight": {
+      "frames": [6,7,8,9,10,11,12,13],
+      "isLooping": false,
+      "frameDuration": 0.2
+    },
+    "idleRight": {
+      "frames": [0,1,2,3,4,5],
+      "isLooping": false,
+      "frameDuration": 0.2
+    }
+  }
+}

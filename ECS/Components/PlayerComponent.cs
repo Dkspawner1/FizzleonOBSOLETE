@@ -7,7 +7,5 @@ public class PlayerComponent
     {
         Speed = 5.0f;
     }
-    public void Update(GameTime gameTime)
-    {
-    }
+
 }

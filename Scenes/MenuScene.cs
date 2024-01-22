@@ -1,6 +1,7 @@
 ﻿using Fizzleon.ECS.Systems;
 using System.Collections.Generic;
 using MonoGame.Extended.Entities;
+using System.Diagnostics;
 
 namespace Fizzleon.Scenes;
 
@@ -51,7 +52,6 @@ public class MenuScene : IScene, IGameComponent
         oldMouse = mouse;
         mouse = Mouse.GetState();
         mouseRect = new Rectangle(mouse.X, mouse.Y, 1, 1);
-
 
         if (mouseRect.Intersects(buttonsRect[0]) && mouse.LeftButton == ButtonState.Pressed)
             IsGameSceneRequested = true;
