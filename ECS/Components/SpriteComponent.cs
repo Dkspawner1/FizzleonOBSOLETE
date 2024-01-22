@@ -1,7 +1,9 @@
 ﻿
+using Fizzleon.ECS.Base;
+
 namespace Fizzleon.ECS.Components;
 
-internal class SpriteComponent : Component
+internal class SpriteComponent
 {
     public Texture2D Texture { get; set; }
     public ITransformable Transform { get; set; }

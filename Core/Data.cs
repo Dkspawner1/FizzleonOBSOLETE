@@ -16,14 +16,11 @@ public record Data
     {
         public static GraphicsDeviceManager Graphics { get; set; }
         public static SpriteBatch SpriteBatch { get; set; }
-        public static World World { get; set; }
-        public static WorldBuilder WorldBuilder { get; set; }
     };
 
     public readonly record struct GameState
     {
         public enum GameStates { MENU, GAME, SETTINGS, EXIT }
-        //public static GameStates CurrentState { get; set; } = GameStates.MENU;
     }
 
 }

@@ -1,4 +1,6 @@
-﻿using Fizzleon.Scenes;
+﻿using Fizzleon.Managers;
+using Fizzleon.Scenes;
+using System.Diagnostics;
 
 namespace Fizzleon.Core;
 
@@ -26,8 +28,8 @@ public class Game1 : Game
         Graphics.PreferredBackBufferHeight = Height;
         Graphics.ApplyChanges();
 
-        gameStateManager.InitializeScenes();
-        
+        gameStateManager.Initialize();
+
         base.Initialize();
     }
 

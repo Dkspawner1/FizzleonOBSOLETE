@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "name": "C#: Fizzleon",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}\\Fizzleon.csproj",
+            "launchConfigurationId": "TargetFramework=;Fizzleon"
+        }
+    ]
+}
