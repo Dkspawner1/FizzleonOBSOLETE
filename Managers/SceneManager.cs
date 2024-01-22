@@ -57,7 +57,7 @@ namespace Fizzleon.Managers
 
                     if (menuScene.IsGameSceneRequested)
                     {
-                        RequestSceneChange(gameScene);
+                        RequestSceneChange(menuScene, gameScene);
                         menuScene.IsGameSceneRequested = false;
                     }
                     break;
@@ -66,7 +66,7 @@ namespace Fizzleon.Managers
                     gameScene.Update(gameTime);
                     if (gameScene.IsMenuSceneRequested)
                     {
-                        RequestSceneChange(menuScene);
+                        RequestSceneChange(gameScene, menuScene);
                         gameScene.IsMenuSceneRequested = false;
                     }
                     break;
@@ -95,11 +95,12 @@ namespace Fizzleon.Managers
             }
         }
 
-        private void RequestSceneChange(IScene targetScene)
+        private void RequestSceneChange(in IScene currentScene, IScene targetScene)
         {
             // Cleanup and change the scene
             Game1.Instance.Components.Clear();
             ChangeScene(targetScene);
+            currentScene.Dispose();
         }
 
         private void ChangeScene(IScene newScene)

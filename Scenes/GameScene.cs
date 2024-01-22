@@ -3,10 +3,11 @@ using Fizzleon.ECS.Components;
 using Fizzleon.ECS.Entities;
 using Fizzleon.ECS.Systems;
 using MonoGame.Extended.Entities;
+using System;
 using System.Collections.Generic;
 using static Fizzleon.Core.Data.GameState;
 
-namespace Fizzleon.Scenes
+namespace Fizzleon.Scenes 
 {
     public class GameScene : IScene
     {
@@ -52,7 +53,7 @@ namespace Fizzleon.Scenes
 
             World.Update(gameTime);
         }
-
+        
         private void HandleInput()
         {
             kb = Keyboard.GetState();
@@ -62,6 +63,12 @@ namespace Fizzleon.Scenes
         public void Draw(GameTime gameTime)
         {
             World.Draw(gameTime);
+        }
+
+        public void Dispose()
+        {
+            players.ForEach(p => p.Dispose());
+            World.Dispose();
         }
     }
 }

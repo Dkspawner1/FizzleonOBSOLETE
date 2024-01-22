@@ -1,11 +1,10 @@
-﻿using System.Diagnostics;
-using Fizzleon.ECS.Components;
-using Fizzleon.ECS.Systems;
+﻿using Fizzleon.ECS.Components;
 using MonoGame.Extended.Entities;
+using System;
 
 namespace Fizzleon.ECS.Entities
 {
-    public class Player
+    public class Player : IDisposable
     {
         private readonly Entity player;
 
@@ -16,11 +15,14 @@ namespace Fizzleon.ECS.Entities
             player.Attach(new MovementComponent());
             player.Attach(new PlayerComponent(speed));
         }
+
+        public void Dispose() => player.Destroy();
+
+
         public void LoadContent(ContentManager Content, Texture2D texture, string pathToSF)
         {
             var sprite = new SpriteComponent(texture);
             var animation = new AnimationComponent(pathToSF, sprite.Texture);
-
             animation.LoadContent(Content);
 
             sprite.SetTransform(player.Get<TransformComponent>());
