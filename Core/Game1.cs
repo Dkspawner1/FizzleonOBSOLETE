@@ -2,61 +2,75 @@
 using Fizzleon.Scenes;
 using System.Diagnostics;
 
-namespace Fizzleon.Core;
-
-using static Data.Game;
-using static Data.Window;
-
-public class Game1 : Game
+namespace Fizzleon.Core
 {
-    private readonly GameStateManager gameStateManager;
-    public static Game1 Instance { get; private set; }
+    using static Data.Game;
+    using static Data.Window;
 
-    public Game1()
+    public class Game1 : Game
     {
-        Graphics = new GraphicsDeviceManager(this);
-        Content.RootDirectory = "Content";
-        Instance = this;
-        Window.Title = Title;
-        IsMouseVisible = true;
-        gameStateManager = new();
-    }
+        private readonly SceneManager sceneManager;
+        public static Game1 Instance { get; private set; }
+        private NetworkManager network;
 
-    protected override void Initialize()
-    {
-        Graphics.PreferredBackBufferWidth = Width;
-        Graphics.PreferredBackBufferHeight = Height;
-        Graphics.ApplyChanges();
+        public Game1()
+        {
+            Graphics = new GraphicsDeviceManager(this);
+            Content.RootDirectory = "Content";
+            Instance = this;
+            Window.Title = Title;
+            IsMouseVisible = true;
+            sceneManager = new();
+            network = new();
+        }
 
-        gameStateManager.Initialize();
 
-        base.Initialize();
-    }
+        protected override void Initialize()
+        {
+            sceneManager.Initialize();
+            Graphics.PreferredBackBufferWidth = Width;
+            Graphics.PreferredBackBufferHeight = Height;
+            Graphics.ApplyChanges();
 
-    protected override void LoadContent()
-    {
-        SpriteBatch = new SpriteBatch(GraphicsDevice);
-        gameStateManager.LoadContent(Content);
+            var serverPort = network.StartServer(7000, 10, 1000);
+            
+            network.ConnectToServer("127.0.0.1", serverPort);
 
-        base.LoadContent();
+            base.Initialize();
+        }
 
-    }
+        protected override void LoadContent()
+        {
+            SpriteBatch = new SpriteBatch(GraphicsDevice);
+            sceneManager.LoadContent(Content);
 
-    protected override void Update(GameTime gameTime)
-    {
-        if (Data.Window.Exit)
-            Exit();
+            base.LoadContent();
+        }
 
-        gameStateManager.Update(gameTime);
+        protected override void Update(GameTime gameTime)
+        {
+            network.Update();
 
-        base.Update(gameTime);
-    }
+            if (Data.Window.Exit)
+                Exit();
 
-    protected override void Draw(GameTime gameTime)
-    {
-        GraphicsDevice.Clear(Color.DarkBlue * 0.2f);
-        gameStateManager.Draw(gameTime);
+            sceneManager.Update(gameTime);
 
-        base.Draw(gameTime);
+            base.Update(gameTime);
+        }
+
+        protected override void Draw(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.DarkBlue * 0.2f);
+            sceneManager.Draw(gameTime);
+
+            base.Draw(gameTime);
+        }
+
+        protected override void UnloadContent()
+        {
+            network.Dispose();
+        }
     }
 }
+
