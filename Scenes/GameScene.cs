@@ -62,7 +62,8 @@ public class GameScene : IScene
      
         sprite.SetTransform(player.Get<TransformComponent>());
         animation.SetTransform(player.Get<TransformComponent>());
-
+        // Spawn
+        player.Get<TransformComponent>().Position = new Vector2(100, 100);
         player.Attach(sprite);
         player.Attach(animation);
     }
@@ -75,6 +76,7 @@ public class GameScene : IScene
             IsMenuSceneRequested = true;
 
         player.Get<AnimationComponent>().Update(gameTime);
+        // Speed
         player.Get<MovementComponent>().Velocity = new Vector2(50, 0); 
 
         world.Update(gameTime);
