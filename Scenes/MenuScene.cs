@@ -10,7 +10,7 @@ using static Data.Window;
 
 public class MenuScene : IScene, IGameComponent
 {
-    public World world { get; set; }
+    public World World { get; set; }
 
     public List<Entity> Entities { get; } = new();
 
@@ -28,7 +28,7 @@ public class MenuScene : IScene, IGameComponent
     {
         WorldBuilder = new WorldBuilder();
         WorldBuilder.AddSystem(new RenderSystem());
-        world = WorldBuilder.Build();
+        World = WorldBuilder.Build();
     }
 
 
@@ -59,7 +59,7 @@ public class MenuScene : IScene, IGameComponent
         if (mouseRect.Intersects(buttonsRect[2]) && mouse.LeftButton == ButtonState.Pressed)
             Exit = true;
 
-        world.Update(gameTime);
+        World.Update(gameTime);
     }
 
     public void Draw(GameTime gameTime)

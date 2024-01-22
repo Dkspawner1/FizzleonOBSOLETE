@@ -1,6 +1,6 @@
 using System;
 
-namespace Fizzleon.ECS.Events;
+namespace Fizzleon.Events;
 
 public class SceneChangedEventArgs : EventArgs
 {

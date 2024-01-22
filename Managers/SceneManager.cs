@@ -1,8 +1,8 @@
 
 using System;
 using System.Collections.Generic;
-using Fizzleon.ECS.Events;
-using Fizzleon.ECS.Events.Listeners;
+using Fizzleon.Events;
+using Fizzleon.Events.Listeners;
 using Fizzleon.Scenes;
 using static Fizzleon.Core.Data.GameState;
 

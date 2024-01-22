@@ -32,6 +32,10 @@ namespace Fizzleon.ECS.Systems
                 var sprite = spriteMapper.Get(entity);
                 var animation = animationMapper.Get(entity);
 
+
+                //sprite.Draw(Data.Game.SpriteBatch);
+                //animation.Draw(Data.Game.SpriteBatch);
+
                 (animation ?? sprite)?.Draw(Data.Game.SpriteBatch);
 
             }
