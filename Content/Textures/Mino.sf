@@ -1,0 +1,19 @@
+{
+  "textureAtlas": {
+    "texture": "Warrior\\SpriteSheet\\Mino.png",
+    "regionWidth": 96,
+    "regionHeight": 96
+  },
+  "cycles": {
+    "idle-right": {
+      "frames": [0,1,2,3,4],
+      "isLooping": false,
+      "frameDuration": 0.2
+    },
+    "run-right": {
+      "frames": [10,11,12,13,14,15,16,17],
+      "isLooping": false,
+      "frameDuration": 0.10999997
+    }
+  }
+}

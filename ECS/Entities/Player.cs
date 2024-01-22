@@ -8,45 +8,29 @@ namespace Fizzleon.ECS.Entities
     public class Player
     {
         private readonly Entity player;
-        private AnimationInitializationSystem animationInitializationSystem;
-        private AnimationUpdateSystem animationUpdateSystem;
 
-        public Player(World world)
+        public Player(World world, Vector2 spawn, float speed)
         {
             player = world.CreateEntity();
-            player.Attach(new TransformComponent(new Vector2(0, 0)));
+            player.Attach(new TransformComponent(spawn));
             player.Attach(new MovementComponent());
-            player.Attach(new PlayerComponent() { Speed = 500f });
-
-            InitializeSystems();
+            player.Attach(new PlayerComponent(speed));
         }
-        private void InitializeSystems()
+        public void LoadContent(ContentManager Content, Texture2D texture, string pathToSF)
         {
-            animationInitializationSystem = new AnimationInitializationSystem();
-            animationUpdateSystem = new AnimationUpdateSystem(Game1.Instance.Content);
-        }
-
-
-        public void LoadContent(ContentManager Content)
-        {
-            Texture2D playerTexture = Content.Load<Texture2D>("Textures/Warrior_Sheet-Effect");
-
-            var sprite = new SpriteComponent(playerTexture);
-            var animation = new AnimationComponent("Textures/Warrior_Sheet-Effect.sf", sprite.Texture);
+            var sprite = new SpriteComponent(texture);
+            var animation = new AnimationComponent(pathToSF, sprite.Texture);
 
             animation.LoadContent(Content);
 
             sprite.SetTransform(player.Get<TransformComponent>());
             animation.SetTransform(player.Get<TransformComponent>());
 
-            // Player's Spawn
-            player.Get<TransformComponent>().Position = new Vector2(100, 100);
-
             player.Attach(sprite);
             player.Attach(animation);
         }
 
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, params string[] animationKeys)
         {
             UpdatePlayerAnimation(gameTime);
             UpdatePlayerMovement();
@@ -58,7 +42,8 @@ namespace Fizzleon.ECS.Entities
             // Update the position using the velocity
             transform.Position += playerMovement.Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            player.Get<AnimationComponent>().Play("idleRight", true, () => { });
+            player.Get<AnimationComponent>().Play(animationKeys.FirstOrDefault(), true, () => { });
+
         }
 
         private void UpdatePlayerAnimation(GameTime gameTime) => player.Get<AnimationComponent>().Update(gameTime);
@@ -75,16 +60,12 @@ namespace Fizzleon.ECS.Entities
             float horizontalMovement = 0;
 
             if (currentKeyboardState.IsKeyDown(Keys.Left))
-            {
                 horizontalMovement -= 1;
-                Trace.WriteLine("Moving left");
-            }
+
 
             if (currentKeyboardState.IsKeyDown(Keys.Right))
-            {
                 horizontalMovement += 1;
-                Trace.WriteLine("Moving right");
-            }
+
 
             // Set the velocity based on the horizontal movement
             playerMovement.Velocity = new Vector2(horizontalMovement * playerSpeed, 0);
