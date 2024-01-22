@@ -17,26 +17,20 @@ namespace Fizzleon.ECS.Components
         {
             PathToSF = pathToSF;
         }
-
         public void LoadContent(ContentManager Content)
         {
             SpriteSheet = Content.Load<SpriteSheet>(PathToSF, new JsonContentLoader());
 
             AnimatedSprite = new AnimatedSprite(SpriteSheet);
         }
-
         public void Update(GameTime gameTime)
         {
             AnimatedSprite.Update(gameTime);
         }
-
         public void Play(string animationName, bool isLooping = true, Action completionAction = null)
         {
             AnimatedSprite.Play(animationName);
-
         }
-
-
         public override void Draw(SpriteBatch spriteBatch)
         {
             AnimatedSprite.Draw(spriteBatch, Transform.Position, Transform.Rotation, Transform.Scale);

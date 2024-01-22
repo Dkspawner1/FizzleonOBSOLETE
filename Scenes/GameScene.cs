@@ -3,6 +3,7 @@ using Fizzleon.ECS.Components;
 using Fizzleon.ECS.Entities;
 using Fizzleon.ECS.Systems;
 using MonoGame.Extended.Entities;
+using System.Collections.Generic;
 using static Fizzleon.Core.Data.GameState;
 
 namespace Fizzleon.Scenes
@@ -16,7 +17,7 @@ namespace Fizzleon.Scenes
         public bool IsMenuSceneRequested { get; set; } = false;
         private WorldBuilder WorldBuilder { get; set; }
 
-        private Player player;
+        private List<Player> players;
 
         public void Initialize()
         {
@@ -25,22 +26,29 @@ namespace Fizzleon.Scenes
             WorldBuilder.AddSystem(new RenderSystem());
             WorldBuilder.AddSystem(new AnimationInitializationSystem());
             WorldBuilder.AddSystem(new AnimationUpdateSystem(Game1.Instance.Content));
+
             World = WorldBuilder.Build();
-            player = new Player(World);
+            players = new List<Player>
+            {
+                new Player(World, new Vector2(300, 500), 200f),
+                new Player(World, new Vector2(700,200),175f)
+            };
         }
 
         public void LoadContent(ContentManager Content)
         {
+            //players.ForEach(p => p.LoadContent(Game1.Instance.Content, Content.Load<Texture2D>("Textures/Warrior_Sheet-Effect"), "Textures/Warrior_Sheet-Effect.sf"));
+            players[0].LoadContent(Game1.Instance.Content, Content.Load<Texture2D>("Textures/Warrior_Sheet-Effect"), "Textures/Warrior_Sheet-Effect.sf");
+            players[1].LoadContent(Game1.Instance.Content, Content.Load<Texture2D>("Textures/Mino"), "Textures/Mino.sf");
 
-            player.LoadContent(Game1.Instance.Content);
         }
-
-
 
         public void Update(GameTime gameTime)
         {
             HandleInput();
-            player.Update(gameTime);
+
+            players[0].Update(gameTime, "runRight", "idleRight");
+            players[1].Update(gameTime, "idle-right", "run-right");
 
             World.Update(gameTime);
         }

@@ -24,6 +24,9 @@
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Content\Textures\Mino.sf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Content\Textures\Warrior_Sheet-Effect.sf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
