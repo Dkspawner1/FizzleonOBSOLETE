@@ -25,7 +25,7 @@ namespace Fizzleon.ECS.Systems
             {
 
                 var animation = animationMapper.Get(entity);
-                animation.Update(gameTime);
+                animation.Update();
             }
         }
     }

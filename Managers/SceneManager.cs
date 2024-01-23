@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using Fizzleon.Events;
 using Fizzleon.Events.Listeners;
 using Fizzleon.Scenes;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using static Fizzleon.Core.Data.GameState;
 
 namespace Fizzleon.Managers
@@ -14,7 +12,7 @@ namespace Fizzleon.Managers
         public event EventHandler<SceneChangedEventArgs> SceneChanged;
         private static SceneChangeListener sceneChangeListener;
 
-        private Game Instance;
+        private readonly Game1 Instance;
 
         public IScene CurrentScene { get; set; }
 
@@ -22,7 +20,7 @@ namespace Fizzleon.Managers
         protected MenuScene menuScene;
 
         protected Dictionary<GameStates, IScene> scenes;
-        public SceneManager(Game game)
+        public SceneManager(Game1 game)
         {
             Instance = game;
         }
@@ -50,16 +48,17 @@ namespace Fizzleon.Managers
         public void LoadContent()
         {
             // Load content of the new scene
-            CurrentScene?.LoadContent();
+            CurrentScene.LoadContent();
         }
 
 
-        public void Update(GameTime gameTime)
+        public void Update()
         {
+            
             switch (CurrentScene.SceneId)
             {
                 case GameStates.MENU:
-                    menuScene.Update(gameTime);
+                    menuScene.Update();
 
                     if (menuScene.IsGameSceneRequested)
                     {
@@ -69,7 +68,7 @@ namespace Fizzleon.Managers
                     break;
 
                 case GameStates.GAME:
-                    gameScene.Update(gameTime);
+                    gameScene.Update();
                     if (gameScene.IsMenuSceneRequested)
                     {
                         RequestSceneChange(gameScene, menuScene);
@@ -79,16 +78,16 @@ namespace Fizzleon.Managers
             }
         }
 
-        public void Draw(GameTime gameTime)
+        public void Draw()
         {
             switch (CurrentScene.SceneId)
             {
                 case GameStates.MENU:
-                    menuScene.Draw(gameTime);
+                    menuScene.Draw();
                     break;
 
                 case GameStates.GAME:
-                    gameScene.Draw(gameTime);
+                    gameScene.Draw();
                     break;
 
                 case GameStates.SETTINGS:
@@ -101,11 +100,11 @@ namespace Fizzleon.Managers
 
         // Preps the scene to change and disposes the assets
         private void RequestSceneChange<Tcurrent, TTarget>(Tcurrent currentScene, TTarget targetScene)
-      where Tcurrent : IScene
-      where TTarget : IScene
+     where Tcurrent : IScene
+     where TTarget : IScene
         {
             // Unload content of the current scene
-            currentScene?.Dispose();
+            currentScene.Dispose();
 
             // Remove components related to the current scene
             for (int i = 0; i < Instance.Components.Count; i++)
@@ -119,7 +118,6 @@ namespace Fizzleon.Managers
 
             ChangeScene(targetScene);
         }
-        // This event will attempt to load the content after being disposed during the request
         private void ChangeScene(IScene newScene)
         {
             string sceneChangeMessage = $"Changing to ({newScene.SceneId}): {newScene} test";
@@ -130,10 +128,19 @@ namespace Fizzleon.Managers
             CurrentScene = null;
 
             // Unload content of the previous scene
-            previousScene?.Dispose();
+            previousScene.Dispose();
+
+            // Transition out of the previous scene
+            previousScene.TransitionOut();
+
+            // Initialize the new scene
+            newScene.Initialize();
 
             // Load content of the new scene
-            newScene?.LoadContent();
+            newScene.LoadContent();
+
+            // Transition into the new scene
+            newScene.TransitionIn();
 
             // Set CurrentScene to the new scene after loading its content
             CurrentScene = newScene;

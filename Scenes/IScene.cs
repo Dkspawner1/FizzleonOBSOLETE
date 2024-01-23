@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Fizzleon.ECS.Components;
 using MonoGame.Extended.Entities;
-using MonoGame.Extended.Entities.Systems;
-
 using static Fizzleon.Core.Data.GameState;
+using System;
+using static Fizzleon.ECS.Components.SceneTransitionComponent<Fizzleon.Scenes.IScene>;
 
 namespace Fizzleon.Scenes
 {
@@ -11,8 +10,13 @@ namespace Fizzleon.Scenes
     {
         public GameStates SceneId { get; }
         public World World { get; set; }
+        TransitionState CurrentTransitionState { get; }
+        public TransitionComponent TransitionComponent { get; } 
+
         protected internal void LoadContent();
-        protected internal void Update(GameTime gameTime);
-        protected internal void Draw(GameTime gameTime);
+        protected internal void Update();
+        protected internal void Draw();
+        protected internal void TransitionIn();
+        protected internal void TransitionOut();
     }
 }

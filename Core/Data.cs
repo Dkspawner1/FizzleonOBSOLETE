@@ -1,7 +1,10 @@
 ﻿namespace Fizzleon.Core;
 
-public record Data
+public sealed record Data
 {
+    public static GameTime GameTime { get; set; }
+    public static GraphicsDeviceManager Graphics { get; set; }
+    public static SpriteBatch SpriteBatch { get; set; }
     public readonly record struct Window
     {
         public static string Title { get; set; } = "FizzleOn!";
@@ -10,11 +13,7 @@ public record Data
         public static bool Exit { get; set; } = false;
     };
 
-    public readonly record struct Game
-    {
-        public static GraphicsDeviceManager Graphics { get; set; }
-        public static SpriteBatch SpriteBatch { get; set; }
-    };
+   
 
     public readonly record struct GameState
     {

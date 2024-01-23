@@ -7,7 +7,7 @@ using System;
 internal class AnimationComponent : SpriteComponent
 {
     public AnimatedSprite AnimatedSprite { get; set; }
-    public SpriteSheet SpriteSheet { get; set; } // Allow setting the property
+    public SpriteSheet SpriteSheet { get; set; } 
 
     public string PathToSF { get; }
 
@@ -18,14 +18,13 @@ internal class AnimationComponent : SpriteComponent
 
     public void LoadContent(ContentManager Content)
     {
-        // Load AnimationComponent-specific content
         SpriteSheet = Content.Load<SpriteSheet>(PathToSF, new JsonContentLoader());
         AnimatedSprite = new AnimatedSprite(SpriteSheet);
     }
 
-    public void Update(GameTime gameTime)
+    public void Update()
     {
-        AnimatedSprite.Update(gameTime);
+        AnimatedSprite.Update(Data.GameTime);
     }
 
     public void Play(string animationName, bool isLooping = true, Action completionAction = null)
