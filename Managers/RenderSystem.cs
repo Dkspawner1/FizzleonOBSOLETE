@@ -24,7 +24,7 @@ namespace Fizzleon.ECS.Systems
 
         public override void Draw(GameTime gameTime)
         {
-            Data.Game.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, blendState: BlendState.AlphaBlend);
+            Data.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, blendState: BlendState.AlphaBlend);
 
             foreach (var entity in ActiveEntities)
             {
@@ -36,11 +36,11 @@ namespace Fizzleon.ECS.Systems
                 //sprite.Draw(Data.Game.SpriteBatch);
                 //animation.Draw(Data.Game.SpriteBatch);
 
-                (animation ?? sprite)?.Draw(Data.Game.SpriteBatch);
+                (animation ?? sprite)?.Draw(Data.SpriteBatch);
 
             }
 
-            Data.Game.SpriteBatch.End();
+            Data.SpriteBatch.End();
         }
     }
 }

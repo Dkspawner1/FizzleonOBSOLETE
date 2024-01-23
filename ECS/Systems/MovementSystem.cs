@@ -27,7 +27,7 @@ public class MovementSystem : EntityUpdateSystem
             var movement = movementMapper.Get(entity);
 
             // Example: Move the entity based on velocity
-            transform.Position += movement.Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            transform.Position += movement.Velocity * (float)Data.GameTime.ElapsedGameTime.TotalSeconds;
         }
     }
 }

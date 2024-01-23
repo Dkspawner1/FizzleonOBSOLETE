@@ -27,7 +27,7 @@ public class PlayerMovementSystem : EntityUpdateSystem
             var transform = transformMapper.Get(entity);
             var player = playerMapper.Get(entity);
             // Move the player entity
-            transform.Position += new Vector2(player.Speed * (float)gameTime.ElapsedGameTime.TotalSeconds, 0);
+            transform.Position += new Vector2(player.Speed * (float)Data.GameTime.ElapsedGameTime.TotalSeconds, 0);
         }
     }
 

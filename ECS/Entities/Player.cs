@@ -2,6 +2,9 @@
 using Fizzleon.Network;
 using Lidgren.Network;
 using MonoGame.Extended.Entities;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 
 namespace Fizzleon.ECS.Entities
@@ -11,7 +14,7 @@ namespace Fizzleon.ECS.Entities
         public readonly Entity entity;
 
         // Used for game
-        public Player(World world, Vector2 spawn, float speed) 
+        public Player(World world, Vector2 spawn, float speed)
         {
             entity = world.CreateEntity();
             entity.Attach(new TransformComponent(spawn));
@@ -19,22 +22,22 @@ namespace Fizzleon.ECS.Entities
             entity.Attach(new PlayerComponent(speed));
         }
 
-        // Used for networking
         public Player(BindPlayerToNetwork networkPlayer)
         {
             networkPlayer = new BindPlayerToNetwork(this, networkPlayer.Connection);
-            
         }
 
         public void Dispose() => entity.Destroy();
 
-
-        public void LoadContent(Game instance,Texture2D texture, string pathToSF)
+        // Pass the Game1 instance to LoadContent
+        public void LoadContent(Game1 instance, Texture2D texture, string pathToSF)
         {
             var sprite = new SpriteComponent(texture);
             var animation = new AnimationComponent(pathToSF, sprite.Texture);
+
+            // Use instance.Content here
             animation.LoadContent(instance.Content);
-            
+
             sprite.SetTransform(entity.Get<TransformComponent>());
             animation.SetTransform(entity.Get<TransformComponent>());
 
@@ -42,9 +45,9 @@ namespace Fizzleon.ECS.Entities
             entity.Attach(animation);
         }
 
-        public void Update(GameTime gameTime, params string[] animationKeys)
+        public void Update(params string[] animationKeys)
         {
-            UpdatePlayerAnimation(gameTime);
+            UpdatePlayerAnimation();
             UpdatePlayerMovement();
 
             // Update the player's position based on velocity
@@ -52,13 +55,12 @@ namespace Fizzleon.ECS.Entities
             var playerMovement = entity.Get<MovementComponent>();
 
             // Update the position using the velocity
-            transform.Position += playerMovement.Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            transform.Position += playerMovement.Velocity * (float)Data.GameTime.ElapsedGameTime.TotalSeconds;
 
             entity.Get<AnimationComponent>().Play(animationKeys.FirstOrDefault(), true, () => { });
-
         }
 
-        private void UpdatePlayerAnimation(GameTime gameTime) => entity.Get<AnimationComponent>().Update(gameTime);
+        private void UpdatePlayerAnimation() => entity.Get<AnimationComponent>().Update();
 
         private void UpdatePlayerMovement()
         {
@@ -74,16 +76,11 @@ namespace Fizzleon.ECS.Entities
             if (currentKeyboardState.IsKeyDown(Keys.Left))
                 horizontalMovement -= 1;
 
-
             if (currentKeyboardState.IsKeyDown(Keys.Right))
                 horizontalMovement += 1;
-
 
             // Set the velocity based on the horizontal movement
             playerMovement.Velocity = new Vector2(horizontalMovement * playerSpeed, 0);
         }
-
-
     }
 }
-

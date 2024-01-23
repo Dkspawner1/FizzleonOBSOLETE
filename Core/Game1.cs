@@ -4,17 +4,14 @@ using System;
 
 namespace Fizzleon.Core
 {
-    using static Data.Game;
+    using static Data;
     using static Data.Window;
 
     public class Game1 : Game
     {
         private readonly SceneManager sceneManager;
-        //public static Game1 Instance { get; private set; }
-
-        public static bool Start = false;
         private NetworkConnection networkConnection;
-
+        
 
         public Game1()
         {
@@ -37,12 +34,13 @@ namespace Fizzleon.Core
 
             base.Initialize();
 
-            //if (networkConnection.Start())
-            //{
-            //}
-            //else
-            //{
-            //}
+            if (networkConnection.Start())
+            {
+            }
+            else
+            {
+            }
+
 
         }
 
@@ -59,11 +57,12 @@ namespace Fizzleon.Core
 
         protected override void Update(GameTime gameTime)
         {
+            GameTime = gameTime;
 
             if (Data.Window.Exit)
                 Exit();
             
-            sceneManager.Update(gameTime);
+            sceneManager.Update();
 
             base.Update(gameTime);
         }
@@ -71,7 +70,7 @@ namespace Fizzleon.Core
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.DarkBlue * 0.2f);
-            sceneManager.Draw(gameTime);
+            sceneManager.Draw();
 
             base.Draw(gameTime);
         }

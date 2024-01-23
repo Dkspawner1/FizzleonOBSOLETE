@@ -1,44 +1,53 @@
-﻿using Fizzleon.ECS.Systems;
-using Microsoft.Xna.Framework;
-using MonoGame.Extended.Entities;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-
-using static Fizzleon.Core.Data.Game;
-using static Fizzleon.Core.Data.Window;
-using System.Reflection;
+using MonoGame.Extended.Entities;
+using Fizzleon.ECS.Systems;
+using static Fizzleon.ECS.Components.SceneTransitionComponent<Fizzleon.Scenes.IScene>;
+using static Fizzleon.Core.Data;
+using Fizzleon.ECS.Components;
 
 namespace Fizzleon.Scenes
 {
-    public class MenuScene : IScene, IDisposable
+    public class MenuScene : IScene
     {
+        public TransitionState CurrentTransitionState => TransitionState.None;
         public World World { get; set; }
+        public GameState.GameStates SceneId => GameState.GameStates.MENU;
 
-        public Data.GameState.GameStates SceneId => Data.GameState.GameStates.MENU;
-
-        private WorldBuilder WorldBuilder { get; set; }
-        public Game Instance { get; }
+        private Entity sceneEntity;
+        public Entity SceneEntity => sceneEntity;
 
         private TextureLoaderSystem textureLoaderSystem;
+        private WorldBuilder worldBuilder { get; set; }
+        private TransitionComponent transitionComponent;
+        public TransitionComponent TransitionComponent => transitionComponent;
+
+        public Game1 Instance { get; }
 
         private static List<Texture2D> buttons = new(3);
         private readonly List<Rectangle> buttonsRect = new(buttons.Capacity);
 
-        public MenuScene(Game instance)
+        private readonly SceneTransitionComponent<MenuScene> sceneTransition;
+        public MenuScene(Game1 instance)
         {
             Instance = instance;
-            WorldBuilder = new WorldBuilder();
-            WorldBuilder.AddSystem(new RenderSystem());
-            textureLoaderSystem = new TextureLoaderSystem(Instance.Content);
-            WorldBuilder.AddSystem(textureLoaderSystem);
-            World = WorldBuilder.Build();
+            sceneTransition = new SceneTransitionComponent<MenuScene>(Instance, this);
         }
 
         public void Initialize()
         {
+            worldBuilder = new WorldBuilder();
+            worldBuilder.AddSystem(new RenderSystem());
+            textureLoaderSystem = new TextureLoaderSystem(Instance.Content);
+            worldBuilder.AddSystem(textureLoaderSystem);
+            worldBuilder.AddSystem(new TransitionSystem());
+
+            World = worldBuilder.Build();
+            sceneEntity = World.CreateEntity();
+            transitionComponent = new TransitionComponent(Instance, "Textures/Warrior_Sheet-Effect");
+            sceneEntity.Attach(sceneTransition);
+            sceneEntity.Attach(transitionComponent);
+
             LoadContent();
         }
 
@@ -50,15 +59,13 @@ namespace Fizzleon.Scenes
                 buttonsRect.Add(new Rectangle(0, 125 + i * 150, buttons[i].Width / 4, buttons[i].Height / 4));
             }
             textureLoaderSystem.LoadMenuItems(buttons, buttonsRect);
-
         }
-
 
         private MouseState mouse, oldMouse;
         private Rectangle mouseRect;
-        public bool IsGameSceneRequested = false;
+        public bool IsGameSceneRequested { get; set; } = false;
 
-        public void Update(GameTime gameTime)
+        public void Update()
         {
             oldMouse = mouse;
             mouse = Mouse.GetState();
@@ -68,21 +75,23 @@ namespace Fizzleon.Scenes
                 IsGameSceneRequested = true;
 
             if (mouseRect.Intersects(buttonsRect[2]) && mouse.LeftButton == ButtonState.Pressed)
-                Exit = true;
+                Window.Exit = true;
 
-            World.Update(gameTime);
+            World.Update(Data.GameTime);
         }
 
-        public void Draw(GameTime gameTime)
+        public void Draw()
         {
-            Data.Game.SpriteBatch.Begin();
+            Data.SpriteBatch.Begin();
             for (var i = 0; i < buttons.Count; i++)
             {
-                Data.Game.SpriteBatch.Draw(buttons[i], buttonsRect[i], Color.White);
+                Data.SpriteBatch.Draw(buttons[i], buttonsRect[i], Color.White);
                 if (mouseRect.Intersects(buttonsRect[i]))
-                    Data.Game.SpriteBatch.Draw(buttons[i], buttonsRect[i], Color.DarkGray);
+                    Data.SpriteBatch.Draw(buttons[i], buttonsRect[i], Color.DarkGray);
             }
-            Data.Game.SpriteBatch.End();
+            sceneEntity.Get<SceneTransitionComponent<MenuScene>>().Draw(Data.SpriteBatch);
+
+            Data.SpriteBatch.End();
         }
 
         public void Dispose()
@@ -90,6 +99,16 @@ namespace Fizzleon.Scenes
             buttons.Clear();
             World.Dispose();
             textureLoaderSystem.Dispose();
+        }
+
+        public void TransitionIn()
+        {
+            sceneEntity.Get<SceneTransitionComponent<MenuScene>>().TransitionIn();
+        }
+
+        public void TransitionOut()
+        {
+            sceneEntity.Get<SceneTransitionComponent<MenuScene>>().TransitionOut();
         }
     }
 }
