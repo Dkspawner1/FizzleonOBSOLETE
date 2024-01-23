@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using MonoGame.Extended.Entities;
+﻿using Fizzleon.ECS.Components;
 using Fizzleon.ECS.Systems;
-using static Fizzleon.ECS.Components.SceneTransitionComponent<Fizzleon.Scenes.IScene>;
+using Fizzleon.Managers;
+using MonoGame.Extended.Entities;
+using System.Collections.Generic;
 using static Fizzleon.Core.Data;
-using Fizzleon.ECS.Components;
+using static Fizzleon.ECS.Components.SceneTransitionComponent;
 
 namespace Fizzleon.Scenes
 {
@@ -13,46 +13,52 @@ namespace Fizzleon.Scenes
         public TransitionState CurrentTransitionState => TransitionState.None;
         public World World { get; set; }
         public GameState.GameStates SceneId => GameState.GameStates.MENU;
+        public bool IsSceneChangeRequested { get; set; }
 
         private Entity sceneEntity;
         public Entity SceneEntity => sceneEntity;
 
         private TextureLoaderSystem textureLoaderSystem;
         private WorldBuilder worldBuilder { get; set; }
-        private TransitionComponent transitionComponent;
-        public TransitionComponent TransitionComponent => transitionComponent;
+
+        // Use the generic SceneTransitionComponent
+        private SceneTransitionComponent sceneTransition;
+        public SceneTransitionComponent TransitionComponent => sceneTransition;
 
         public Game1 Instance { get; }
 
         private static List<Texture2D> buttons = new(3);
         private readonly List<Rectangle> buttonsRect = new(buttons.Capacity);
 
-        private readonly SceneTransitionComponent<MenuScene> sceneTransition;
         public MenuScene(Game1 instance)
         {
             Instance = instance;
-            sceneTransition = new SceneTransitionComponent<MenuScene>(Instance, this);
+            sceneTransition = new SceneTransitionComponent(Instance);
         }
 
         public void Initialize()
         {
-            worldBuilder = new WorldBuilder();
-            worldBuilder.AddSystem(new RenderSystem());
+            worldBuilder = new WorldBuilder()
+                .AddSystem(new RenderSystem())
+                .AddSystem(new TransitionSystem());
+
+            // Instantiate textureLoaderSystem before adding it to worldBuilder
             textureLoaderSystem = new TextureLoaderSystem(Instance.Content);
             worldBuilder.AddSystem(textureLoaderSystem);
-            worldBuilder.AddSystem(new TransitionSystem());
 
             World = worldBuilder.Build();
             sceneEntity = World.CreateEntity();
-            transitionComponent = new TransitionComponent(Instance, "Textures/Warrior_Sheet-Effect");
+
+            // Attach the generic SceneTransitionComponent
             sceneEntity.Attach(sceneTransition);
-            sceneEntity.Attach(transitionComponent);
 
             LoadContent();
         }
 
         public void LoadContent()
         {
+            buttons.Clear();
+
             for (int i = 0; i < 3; i++)
             {
                 buttons.Add(Instance.Content.Load<Texture2D>($"textures/btn{i}"));
@@ -63,7 +69,6 @@ namespace Fizzleon.Scenes
 
         private MouseState mouse, oldMouse;
         private Rectangle mouseRect;
-        public bool IsGameSceneRequested { get; set; } = false;
 
         public void Update()
         {
@@ -72,7 +77,7 @@ namespace Fizzleon.Scenes
             mouseRect = new Rectangle(mouse.X, mouse.Y, 1, 1);
 
             if (mouseRect.Intersects(buttonsRect[0]) && mouse.LeftButton == ButtonState.Pressed)
-                IsGameSceneRequested = true;
+                IsSceneChangeRequested = true;
 
             if (mouseRect.Intersects(buttonsRect[2]) && mouse.LeftButton == ButtonState.Pressed)
                 Window.Exit = true;
@@ -89,7 +94,9 @@ namespace Fizzleon.Scenes
                 if (mouseRect.Intersects(buttonsRect[i]))
                     Data.SpriteBatch.Draw(buttons[i], buttonsRect[i], Color.DarkGray);
             }
-            sceneEntity.Get<SceneTransitionComponent<MenuScene>>().Draw(Data.SpriteBatch);
+
+            // Use the generic Draw method
+            sceneEntity.Get<SceneTransitionComponent>().Draw(Data.SpriteBatch);
 
             Data.SpriteBatch.End();
         }
@@ -97,18 +104,20 @@ namespace Fizzleon.Scenes
         public void Dispose()
         {
             buttons.Clear();
-            World.Dispose();
             textureLoaderSystem.Dispose();
+            World.Dispose();
         }
 
         public void TransitionIn()
         {
-            sceneEntity.Get<SceneTransitionComponent<MenuScene>>().TransitionIn();
+            // Use the generic TransitionIn method
+            TransitionComponent.TransitionIn();
         }
 
         public void TransitionOut()
         {
-            sceneEntity.Get<SceneTransitionComponent<MenuScene>>().TransitionOut();
+            // Use the generic TransitionOut method
+            TransitionComponent.TransitionOut();
         }
     }
 }

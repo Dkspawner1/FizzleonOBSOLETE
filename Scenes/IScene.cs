@@ -1,22 +1,23 @@
 ﻿using Fizzleon.ECS.Components;
 using MonoGame.Extended.Entities;
-using static Fizzleon.Core.Data.GameState;
+using static Fizzleon.Core.Data;
 using System;
-using static Fizzleon.ECS.Components.SceneTransitionComponent<Fizzleon.Scenes.IScene>;
+using static Fizzleon.ECS.Components.SceneTransitionComponent;
 
-namespace Fizzleon.Scenes
+public interface IScene : IDisposable
 {
-    public interface IScene : IGameComponent, IDisposable
-    {
-        public GameStates SceneId { get; }
-        public World World { get; set; }
-        TransitionState CurrentTransitionState { get; }
-        public TransitionComponent TransitionComponent { get; } 
+    GameState.GameStates SceneId { get; }
+    TransitionState CurrentTransitionState { get; }
+    World World { get; set; }
+    Entity SceneEntity { get; }
+    SceneTransitionComponent TransitionComponent { get; }
 
-        protected internal void LoadContent();
-        protected internal void Update();
-        protected internal void Draw();
-        protected internal void TransitionIn();
-        protected internal void TransitionOut();
-    }
+    void Initialize();
+    void LoadContent();
+    void Update();
+    void Draw();
+    void TransitionIn();
+    void TransitionOut();
+
+    bool IsSceneChangeRequested { get; set; }
 }
