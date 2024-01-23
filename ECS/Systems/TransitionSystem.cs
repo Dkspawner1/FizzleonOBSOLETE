@@ -1,41 +1,44 @@
-﻿
-using Fizzleon.ECS.Components;
+﻿using Fizzleon.ECS.Components;
 using MonoGame.Extended.Entities;
+using static Fizzleon.Core.Data.GameState;
+using Fizzleon.Scenes;  // Add reference to your scene namespace
+using System;
 using MonoGame.Extended.Entities.Systems;
 
-namespace Fizzleon.ECS.Systems;
-public class TransitionSystem : EntityUpdateSystem
+namespace Fizzleon.ECS.Systems
 {
-    private ComponentMapper<TransitionComponent> transitionMapper;
-
-    public TransitionSystem() : base(Aspect.All(typeof(TransitionComponent)))
+    public class TransitionSystem : EntityUpdateSystem 
     {
+        private ComponentMapper<SceneTransitionComponent> transitionMapper;
 
-    }
-    public override void Initialize(IComponentMapperService mapperService)
-    {
-        transitionMapper = mapperService.GetMapper<TransitionComponent>();
-    }
-
-    public override void Update(GameTime gameTime)
-    {
-        foreach (var entity in ActiveEntities)
+        public TransitionSystem() : base(Aspect.All(typeof(SceneTransitionComponent)))
         {
-            var transitionComponent = transitionMapper.Get(entity);
+        }
 
-            switch (transitionComponent.CurrentTransitionState)
+        public override void Initialize(IComponentMapperService mapperService)
+        {
+            transitionMapper = mapperService.GetMapper<SceneTransitionComponent>();
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            foreach (var entity in ActiveEntities)
             {
-                case TransitionComponent.TransitionState.TransitionIn:
-                    transitionComponent.StartTransitionIn();
-                    break;
+                var transitionComponent = transitionMapper.Get(entity);
 
-                case TransitionComponent.TransitionState.TransitionOut:
-                    transitionComponent.StartTransitionOut();
-                    break;
+                switch (transitionComponent.CurrentTransitionState)
+                {
+                    case SceneTransitionComponent.TransitionState.TransitionIn:
+                        transitionComponent.TransitionIn();
+                        break;
 
+                    case SceneTransitionComponent.TransitionState.TransitionOut:
+                        transitionComponent.TransitionOut();
+                        break;
 
-                default:
-                    break;
+                    default:
+                        break;
+                }
             }
         }
     }

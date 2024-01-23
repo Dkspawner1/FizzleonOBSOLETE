@@ -1,33 +1,26 @@
 ﻿using Fizzleon.ECS.Components;
 using Fizzleon.ECS.Entities;
 using Fizzleon.ECS.Systems;
-using Fizzleon.Scenes;
+using Fizzleon.Managers;
 using MonoGame.Extended.Entities;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using static Fizzleon.Core.Data.GameState;
-using static Fizzleon.ECS.Components.SceneTransitionComponent<Fizzleon.Scenes.IScene>;
+using static Fizzleon.ECS.Components.SceneTransitionComponent;
 
 public class GameScene : IScene
 {
     public GameStates SceneId => GameStates.GAME;
     public World World { get; set; }
-
+    public bool IsSceneChangeRequested { get; set; }
     public TransitionState CurrentTransitionState => TransitionState.None;
 
     private Entity sceneEntity;
     public Entity SceneEntity => sceneEntity;
 
-    private TransitionComponent transitionComponent;
-    public TransitionComponent TransitionComponent => transitionComponent;
-    private readonly SceneTransitionComponent<GameScene> sceneTransition;
+    private readonly SceneTransitionComponent transitionComponent;
+    public SceneTransitionComponent TransitionComponent => transitionComponent;
 
     private KeyboardState kb;
-    public bool IsMenuSceneRequested { get; set; } = false;
 
     private WorldBuilder worldBuilder;
     private TextureLoaderSystem textureLoaderSystem;
@@ -35,30 +28,30 @@ public class GameScene : IScene
     private List<Player> players { get; set; }
 
     protected Game1 Instance { get; private set; }
+
     private ContentManager Content;
-
-
     public GameScene(Game1 instance)
     {
         Instance = instance;
-        sceneTransition = new SceneTransitionComponent<GameScene>(Instance, this);
+
+        transitionComponent = new SceneTransitionComponent(Instance);
 
         Content = new ContentManager(instance.Services, "Content");
     }
 
     public void Initialize()
     {
-        worldBuilder = new WorldBuilder();
+        worldBuilder = new WorldBuilder()
+            .AddSystem(new RenderSystem())
+            .AddSystem(new AnimationInitializationSystem(Content))
+            .AddSystem(new AnimationUpdateSystem(Content))
+            .AddSystem(new TransitionSystem());
 
-        var animationInitializationSystem = new AnimationInitializationSystem(Content);
-        worldBuilder.AddSystem(animationInitializationSystem);
-
-        worldBuilder.AddSystem(new AnimationUpdateSystem(Content));
-        worldBuilder.AddSystem(new TransitionSystem());
         textureLoaderSystem = new TextureLoaderSystem(Content);
         worldBuilder.AddSystem(textureLoaderSystem);
 
         World = worldBuilder.Build();
+
         players = new List<Player>
         {
             new Player(World, new Vector2(300, 500), 200f),
@@ -67,14 +60,11 @@ public class GameScene : IScene
 
         sceneEntity = World.CreateEntity();
 
-        transitionComponent = new TransitionComponent(Instance, "Textures/Warrior_Sheet-Effect");
-
         sceneEntity.Attach(transitionComponent);
-
-        sceneEntity.Attach(sceneTransition);
 
         LoadContent();
     }
+
 
     public void LoadContent()
     {
@@ -96,12 +86,12 @@ public class GameScene : IScene
     {
         kb = Keyboard.GetState();
         if (kb.IsKeyDown(Keys.D1))
-            IsMenuSceneRequested = true;
+            IsSceneChangeRequested = true;
     }
 
     public void Draw()
     {
-        World.Draw(new GameTime()); // Pass a new GameTime instance
+        World.Draw(new GameTime());
     }
 
     public void Dispose()
@@ -113,20 +103,22 @@ public class GameScene : IScene
 
         players.Clear();
 
-        // Unload content specific to the current scene
+
         Content.Unload();
 
-        // Dispose the World
+
         World.Dispose();
     }
 
     public void TransitionIn()
     {
-        sceneEntity.Get<SceneTransitionComponent<GameScene>>().TransitionIn();
+        // Use the generic TransitionIn method
+        TransitionComponent.TransitionIn();
     }
 
     public void TransitionOut()
     {
-        sceneEntity.Get<SceneTransitionComponent<GameScene>>().TransitionOut();
+        // Use the generic TransitionOut method
+        TransitionComponent.TransitionOut();
     }
 }

@@ -1,152 +1,128 @@
-using System;
-using System.Collections.Generic;
-using Fizzleon.Events;
 using Fizzleon.Events.Listeners;
+using Fizzleon.Events;
 using Fizzleon.Scenes;
 using static Fizzleon.Core.Data.GameState;
+using System.Collections.Generic;
+using System;
 
-namespace Fizzleon.Managers
+namespace Fizzleon.Managers;
+
+public class SceneManager : List<IScene>, IGameComponent
 {
-    public class SceneManager : List<IScene>, IGameComponent
+    public event EventHandler<SceneChangedEventArgs> SceneChanged;
+    private SceneChangeListener sceneChangeListener;
+
+    private readonly Game1 Instance;
+
+    public IScene CurrentScene { get; set; }
+
+    protected GameScene gameScene;
+    protected MenuScene menuScene;
+
+    protected Dictionary<GameStates, IScene> scenes;
+
+    public SceneManager(Game1 game)
     {
-        public event EventHandler<SceneChangedEventArgs> SceneChanged;
-        private static SceneChangeListener sceneChangeListener;
+        Instance = game;
+    }
 
-        private readonly Game1 Instance;
-
-        public IScene CurrentScene { get; set; }
-
-        protected GameScene gameScene;
-        protected MenuScene menuScene;
-
-        protected Dictionary<GameStates, IScene> scenes;
-        public SceneManager(Game1 game)
-        {
-            Instance = game;
-        }
-        public void Initialize()
-        {
-            menuScene = new MenuScene(Instance);
-            gameScene = new GameScene(Instance);
-
-            scenes = new Dictionary<GameStates, IScene>
+    public void Initialize()
     {
-        { GameStates.MENU, menuScene },
-        { GameStates.GAME, gameScene }
-    };
+        menuScene = new MenuScene(Instance);
+        gameScene = new GameScene(Instance);
 
-            foreach (var scene in scenes.Values)
-            {
-                scene.Initialize();
-                Add(scene);
-            }
+        scenes = new Dictionary<GameStates, IScene>
+        {
+            { GameStates.MENU, menuScene },
+            { GameStates.GAME, gameScene }
+            // Add other scenes as needed
+        };
 
-            CurrentScene = menuScene;
-            sceneChangeListener = new SceneChangeListener(this);
+        foreach (var scene in scenes.Values)
+        {
+            scene.Initialize();
+            Add(scene);
         }
 
-        public void LoadContent()
-        {
-            // Load content of the new scene
-            CurrentScene.LoadContent();
-        }
+        CurrentScene = menuScene;
+        sceneChangeListener = new SceneChangeListener(this);
+    }
 
+    public void LoadContent()
+    {
+        // Load content of the new scene if needed
+        // CurrentScene.LoadContent(); // Commented out for now
+    }
 
-        public void Update()
+    public void Update()
+    {
+        CurrentScene.Update();
+
+        if (CurrentScene is GameScene)
         {
-            
-            switch (CurrentScene.SceneId)
+            if (gameScene.IsSceneChangeRequested)
             {
-                case GameStates.MENU:
-                    menuScene.Update();
-
-                    if (menuScene.IsGameSceneRequested)
-                    {
-                        RequestSceneChange(menuScene, gameScene);
-                        menuScene.IsGameSceneRequested = false;
-                    }
-                    break;
-
-                case GameStates.GAME:
-                    gameScene.Update();
-                    if (gameScene.IsMenuSceneRequested)
-                    {
-                        RequestSceneChange(gameScene, menuScene);
-                        gameScene.IsMenuSceneRequested = false;
-                    }
-                    break;
+                RequestSceneChange(CurrentScene, menuScene);
+                gameScene.IsSceneChangeRequested = false;
             }
         }
-
-        public void Draw()
+        else if (CurrentScene is MenuScene)
         {
-            switch (CurrentScene.SceneId)
+            if (menuScene.IsSceneChangeRequested)
             {
-                case GameStates.MENU:
-                    menuScene.Draw();
-                    break;
-
-                case GameStates.GAME:
-                    gameScene.Draw();
-                    break;
-
-                case GameStates.SETTINGS:
-                    break;
-
-                case GameStates.EXIT:
-                    break;
+                RequestSceneChange(CurrentScene, gameScene);
+                menuScene.IsSceneChangeRequested = false;
             }
         }
+    }
 
-        // Preps the scene to change and disposes the assets
-        private void RequestSceneChange<Tcurrent, TTarget>(Tcurrent currentScene, TTarget targetScene)
-     where Tcurrent : IScene
-     where TTarget : IScene
-        {
-            // Unload content of the current scene
-            currentScene.Dispose();
 
-            // Remove components related to the current scene
-            for (int i = 0; i < Instance.Components.Count; i++)
-            {
-                if (Instance.Components[i] is Tcurrent)
-                {
-                    Instance.Components.RemoveAt(i);
-                    i--;
-                }
-            }
+    public void Draw()
+    {
+        // Draw the current scene
+        CurrentScene.Draw();
+    }
 
-            ChangeScene(targetScene);
-        }
-        private void ChangeScene(IScene newScene)
-        {
-            string sceneChangeMessage = $"Changing to ({newScene.SceneId}): {newScene} test";
-            SceneChanged?.Invoke(this, new SceneChangedEventArgs(sceneChangeMessage, CurrentScene?.SceneId.ToString(), newScene.SceneId.ToString()));
+    // Preps the scene to change and disposes the assets
+    private void RequestSceneChange(IScene currentScene, IScene targetScene)
+    {
+        currentScene.World.Dispose();
+        currentScene.Dispose();
+        Instance.Components.Clear();
 
-            // Set CurrentScene to null before unloading the content
-            IScene previousScene = CurrentScene;
-            CurrentScene = null;
+        targetScene.Initialize();
 
-            // Unload content of the previous scene
-            previousScene.Dispose();
+        ChangeScene(targetScene);
+    }
 
-            // Transition out of the previous scene
-            previousScene.TransitionOut();
+    private void ChangeScene(IScene newScene)
+    {
+        string sceneChangeMessage = $"Changing to ({newScene.SceneId}): {newScene} test";
+        SceneChanged?.Invoke(this, new SceneChangedEventArgs(sceneChangeMessage, CurrentScene?.SceneId.ToString(), newScene.SceneId.ToString()));
 
-            // Initialize the new scene
-            newScene.Initialize();
+        // Set CurrentScene to null before unloading the content
+        IScene previousScene = CurrentScene;
+        CurrentScene = null;
 
-            // Load content of the new scene
-            newScene.LoadContent();
+        // Unload content of the previous scene
+        previousScene.Dispose();
 
-            // Transition into the new scene
-            newScene.TransitionIn();
+        // Transition out of the previous scene
+        previousScene.TransitionOut();
 
-            // Set CurrentScene to the new scene after loading its content
-            CurrentScene = newScene;
+        // Initialize the new scene
+        newScene.Initialize();
 
-            string sceneChangedMessage = $"Changed to ({newScene.SceneId}): {newScene}";
-            SceneChanged?.Invoke(this, new SceneChangedEventArgs(sceneChangedMessage, previousScene?.SceneId.ToString(), newScene.SceneId.ToString()));
-        }
+        // Load content of the new scene
+        newScene.LoadContent();
+
+        // Transition into the new scene
+        newScene.TransitionIn();
+
+        // Set CurrentScene to the new scene after loading its content
+        CurrentScene = newScene;
+
+        string sceneChangedMessage = $"Changed to ({newScene.SceneId}): {newScene}";
+        SceneChanged?.Invoke(this, new SceneChangedEventArgs(sceneChangedMessage, previousScene?.SceneId.ToString(), newScene.SceneId.ToString()));
     }
 }

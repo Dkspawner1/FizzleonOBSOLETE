@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Fizzleon.ECS.Components
 {
-    public class SceneTransitionComponent<TScene> where TScene : IScene
+    public class SceneTransitionComponent 
     {
         public enum TransitionState
         {
@@ -18,12 +18,10 @@ namespace Fizzleon.ECS.Components
         private float transitionAlpha = 0f;
         private Texture2D fadeTexture;
         private Game Instance;
-        private TScene scene;
 
-        public SceneTransitionComponent(Game instance, TScene currentScene)
+        public SceneTransitionComponent(Game instance)
         {
             Instance = instance;
-            scene = currentScene;
 
             fadeTexture = instance.Content.Load<Texture2D>("Textures/Warrior_Sheet-Effect");
             CurrentTransitionState = TransitionState.None;
@@ -57,6 +55,7 @@ namespace Fizzleon.ECS.Components
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(fadeTexture, new Rectangle(0, 0, Instance.GraphicsDevice.Viewport.Width, Instance.GraphicsDevice.Viewport.Height), new Color(255, 255, 255, (int)(255 * transitionAlpha)));
+
         }
     }
 }
