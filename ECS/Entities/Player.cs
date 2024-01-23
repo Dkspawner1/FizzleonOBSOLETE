@@ -1,4 +1,6 @@
 ﻿using Fizzleon.ECS.Components;
+using Fizzleon.Network;
+using Lidgren.Network;
 using MonoGame.Extended.Entities;
 using System;
 
@@ -6,30 +8,38 @@ namespace Fizzleon.ECS.Entities
 {
     public class Player : IDisposable
     {
-        private readonly Entity player;
+        public readonly Entity entity;
 
-        public Player(World world, Vector2 spawn, float speed)
+        // Used for game
+        public Player(World world, Vector2 spawn, float speed) 
         {
-            player = world.CreateEntity();
-            player.Attach(new TransformComponent(spawn));
-            player.Attach(new MovementComponent());
-            player.Attach(new PlayerComponent(speed));
+            entity = world.CreateEntity();
+            entity.Attach(new TransformComponent(spawn));
+            entity.Attach(new MovementComponent());
+            entity.Attach(new PlayerComponent(speed));
         }
 
-        public void Dispose() => player.Destroy();
+        // Used for networking
+        public Player(BindPlayerToNetwork networkPlayer)
+        {
+            networkPlayer = new BindPlayerToNetwork(this, networkPlayer.Connection);
+            
+        }
+
+        public void Dispose() => entity.Destroy();
 
 
-        public void LoadContent(ContentManager Content, Texture2D texture, string pathToSF)
+        public void LoadContent(Game instance,Texture2D texture, string pathToSF)
         {
             var sprite = new SpriteComponent(texture);
             var animation = new AnimationComponent(pathToSF, sprite.Texture);
-            animation.LoadContent(Content);
+            animation.LoadContent(instance.Content);
+            
+            sprite.SetTransform(entity.Get<TransformComponent>());
+            animation.SetTransform(entity.Get<TransformComponent>());
 
-            sprite.SetTransform(player.Get<TransformComponent>());
-            animation.SetTransform(player.Get<TransformComponent>());
-
-            player.Attach(sprite);
-            player.Attach(animation);
+            entity.Attach(sprite);
+            entity.Attach(animation);
         }
 
         public void Update(GameTime gameTime, params string[] animationKeys)
@@ -38,22 +48,22 @@ namespace Fizzleon.ECS.Entities
             UpdatePlayerMovement();
 
             // Update the player's position based on velocity
-            var transform = player.Get<TransformComponent>();
-            var playerMovement = player.Get<MovementComponent>();
+            var transform = entity.Get<TransformComponent>();
+            var playerMovement = entity.Get<MovementComponent>();
 
             // Update the position using the velocity
             transform.Position += playerMovement.Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            player.Get<AnimationComponent>().Play(animationKeys.FirstOrDefault(), true, () => { });
+            entity.Get<AnimationComponent>().Play(animationKeys.FirstOrDefault(), true, () => { });
 
         }
 
-        private void UpdatePlayerAnimation(GameTime gameTime) => player.Get<AnimationComponent>().Update(gameTime);
+        private void UpdatePlayerAnimation(GameTime gameTime) => entity.Get<AnimationComponent>().Update(gameTime);
 
         private void UpdatePlayerMovement()
         {
-            var playerMovement = player.Get<MovementComponent>();
-            var playerSpeed = player.Get<PlayerComponent>().Speed;
+            var playerMovement = entity.Get<MovementComponent>();
+            var playerSpeed = entity.Get<PlayerComponent>().Speed;
 
             // Get the current state of the keyboard
             var currentKeyboardState = Keyboard.GetState();

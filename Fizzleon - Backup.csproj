@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net8	.0</TargetFramework>
 		<RollForward>Major</RollForward>
 		<PublishReadyToRun>false</PublishReadyToRun>
 		<TieredCompilation>false</TieredCompilation>
@@ -23,9 +23,6 @@
 		<PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />
 		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
 		<PackageReference Include="SpaceWizards.Lidgren.Network" Version="0.2.7" />
-	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\NetworkLibrary\NetworkLibrary.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Update="Content\Textures\Mino.sf">

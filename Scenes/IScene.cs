@@ -10,8 +10,8 @@ namespace Fizzleon.Scenes
     public interface IScene : IGameComponent, IDisposable
     {
         public GameStates SceneId { get; }
-        protected internal World World { get; set; }
-        protected internal void LoadContent(ContentManager Content);
+        public World World { get; set; }
+        protected internal void LoadContent();
         protected internal void Update(GameTime gameTime);
         protected internal void Draw(GameTime gameTime);
     }

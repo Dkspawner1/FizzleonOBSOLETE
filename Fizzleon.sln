@@ -5,7 +5,7 @@ VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fizzleon", "Fizzleon.csproj", "{4BEB0374-E205-446D-9E03-D30D9B380B14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdleonServer", "..\IdleonServer\IdleonServer.csproj", "{34661D2E-564C-405F-A6BF-2AD79F4C9031}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FizzleonServer", "..\IdleonServer\FizzleonServer.csproj", "{34661D2E-564C-405F-A6BF-2AD79F4C9031}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkLibrary", "..\NetworkLibrary\NetworkLibrary.csproj", "{A0D7625F-2C66-4FE9-8D00-37F10ABB0CB4}"
 EndProject
