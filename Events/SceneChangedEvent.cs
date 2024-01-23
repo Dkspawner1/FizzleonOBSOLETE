@@ -16,14 +16,4 @@ namespace Fizzleon.Events
             NewScene = newScene;
         }
     }
-
-    public class SceneChangedEvent
-    {
-        public event EventHandler<SceneChangedEventArgs> OnSceneChanged;
-
-        public void Raise(IScene previousScene, IScene newScene)
-        {
-            OnSceneChanged?.Invoke(this, new SceneChangedEventArgs("YourMessageHere", previousScene?.SceneId.ToString(), newScene.SceneId.ToString()));
-        }
-    }
 }

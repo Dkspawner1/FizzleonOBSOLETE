@@ -1,38 +1,40 @@
-﻿using MonoGame.Extended.Content;
+﻿using Fizzleon.ECS.Components;
+using MonoGame.Extended.Content;
 using MonoGame.Extended.Serialization;
 using MonoGame.Extended.Sprites;
-using MonoGame.Extended.TextureAtlases;
 using System;
 
-namespace Fizzleon.ECS.Components
+internal class AnimationComponent : SpriteComponent
 {
-    internal class AnimationComponent : SpriteComponent
+    public AnimatedSprite AnimatedSprite { get; set; }
+    public SpriteSheet SpriteSheet { get; set; } // Allow setting the property
+
+    public string PathToSF { get; }
+
+    public AnimationComponent(string pathToSF, Texture2D texture) : base(texture)
     {
-        public AnimatedSprite AnimatedSprite { get; private set; }
-        public SpriteSheet SpriteSheet { get; private set; }
-        public string PathToSF { get; }
+        PathToSF = pathToSF;
+    }
 
-        public AnimationComponent(string pathToSF, Texture2D texture) : base(texture)
-        {
-            PathToSF = pathToSF;
-            SpriteSheet = Game1.Instance.Content.Load<SpriteSheet>(PathToSF, new JsonContentLoader());
+    public void LoadContent(ContentManager Content)
+    {
+        // Load AnimationComponent-specific content
+        SpriteSheet = Content.Load<SpriteSheet>(PathToSF, new JsonContentLoader());
+        AnimatedSprite = new AnimatedSprite(SpriteSheet);
+    }
 
-            AnimatedSprite = new AnimatedSprite(SpriteSheet);
-        }
-        public void LoadContent(ContentManager Content)
-        {
-        }
-        public void Update(GameTime gameTime)
-        {
-            AnimatedSprite.Update(gameTime);
-        }
-        public void Play(string animationName, bool isLooping = true, Action completionAction = null)
-        {
-            AnimatedSprite.Play(animationName);
-        }
-        public override void Draw(SpriteBatch spriteBatch)
-        {
-            AnimatedSprite.Draw(spriteBatch, Transform.Position, Transform.Rotation, Transform.Scale);
-        }
+    public void Update(GameTime gameTime)
+    {
+        AnimatedSprite.Update(gameTime);
+    }
+
+    public void Play(string animationName, bool isLooping = true, Action completionAction = null)
+    {
+        AnimatedSprite.Play(animationName);
+    }
+
+    public override void Draw(SpriteBatch spriteBatch)
+    {
+        AnimatedSprite.Draw(spriteBatch, Transform.Position, Transform.Rotation, Transform.Scale);
     }
 }
