@@ -87,7 +87,7 @@ internal class TextureLoaderSystem : ISystem
         contentManager.Unload();
     }
 
-    void ISystem.Initialize(World world)
+    public void Initialize(World world)
     {
     }
 }
