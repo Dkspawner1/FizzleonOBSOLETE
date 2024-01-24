@@ -1,10 +1,15 @@
-﻿namespace Fizzleon.Core;
+﻿using MonoGame.Extended.Input.InputListeners;
+
+namespace Fizzleon.Core;
 
 public sealed record Data
 {
+    public static ContentManager Content { get; set; }
     public static GameTime GameTime { get; set; }
     public static GraphicsDeviceManager Graphics { get; set; }
     public static SpriteBatch SpriteBatch { get; set; }
+    public static MouseListener MouseListener;
+
     public readonly record struct Window
     {
         public static string Title { get; set; } = "FizzleOn!";

@@ -12,12 +12,12 @@ namespace Fizzleon.Network
         {
             var loginInformation = new NetworkLoginInformation() { Name = "Fizzle" };
 
-            client = new NetClient(new NetPeerConfiguration("fizzleon") { Port = 6760 });
+            client = new NetClient(new NetPeerConfiguration("fizzleon") { Port = 7000 });
             client.Start();
             var output = client.CreateMessage();
             output.Write((byte)PacketType.Login);
             output.WriteAllProperties(loginInformation);
-            client.Connect("localhost", 6755, output);
+            client.Connect("localhost", 7001, output);
             return EsablishInfo();
         }
 

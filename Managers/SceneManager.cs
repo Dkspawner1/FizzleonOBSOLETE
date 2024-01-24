@@ -86,14 +86,38 @@ public class SceneManager : List<IScene>, IGameComponent
     // Preps the scene to change and disposes the assets
     private void RequestSceneChange(IScene currentScene, IScene targetScene)
     {
-        currentScene.World.Dispose();
+        // Log transition request
+        Trace.WriteLine($"Requesting scene change from {currentScene.SceneId} to {targetScene.SceneId}");
+
+        // Transition out of the current scene
+        currentScene.TransitionOut();
+
+        // Log transition out
+        Trace.WriteLine($"Transitioning out of {currentScene.SceneId}");
+
+        // Dispose of the assets and entities in the current scene
         currentScene.Dispose();
-        Instance.Components.Clear();
 
+        // Log dispose
+        Trace.WriteLine($"Disposing of {currentScene.SceneId} assets");
+
+        // Initialize and load content of the new scene
         targetScene.Initialize();
+        targetScene.LoadContent();
 
+        // Log initialization and content loading
+        Trace.WriteLine($"Initializing and loading content for {targetScene.SceneId}");
+
+        // Transition into the new scene
+        targetScene.TransitionIn();
+
+        // Log transition in
+        Trace.WriteLine($"Transitioning into {targetScene.SceneId}");
+
+        // Change the active scene
         ChangeScene(targetScene);
     }
+
 
     private void ChangeScene(IScene newScene)
     {

@@ -1,5 +1,6 @@
 ﻿using Fizzleon.Managers;
 using Fizzleon.Network;
+using MonoGame.Extended.Input.InputListeners;
 using System;
 
 namespace Fizzleon.Core
@@ -11,8 +12,6 @@ namespace Fizzleon.Core
     {
         private readonly SceneManager sceneManager;
         private NetworkConnection networkConnection;
-        
-
         public Game1()
         {
             Graphics = new GraphicsDeviceManager(this);
@@ -21,7 +20,10 @@ namespace Fizzleon.Core
             IsMouseVisible = true;
             sceneManager = new(this);
 
+            //Data.Content = new ContentManager();
+            Data.Content = Content;
             networkConnection = new NetworkConnection();
+            MouseListener = new MouseListener();
         }
 
 
@@ -50,15 +52,13 @@ namespace Fizzleon.Core
             
             sceneManager.LoadContent();
             
-            var textureLoaderSystem = new TextureLoaderSystem(Content);
-            
             base.LoadContent();
         }
 
         protected override void Update(GameTime gameTime)
         {
             GameTime = gameTime;
-
+            MouseListener.Update(gameTime);
             if (Data.Window.Exit)
                 Exit();
             
@@ -78,7 +78,6 @@ namespace Fizzleon.Core
         protected override void UnloadContent()
         {
             sceneManager.ForEach(scene => scene.Dispose());
-            Dispose();
         }
     }
 }

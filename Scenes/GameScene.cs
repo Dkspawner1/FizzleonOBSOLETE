@@ -47,7 +47,7 @@ public class GameScene : IScene
             .AddSystem(new AnimationUpdateSystem(Content))
             .AddSystem(new TransitionSystem());
 
-        textureLoaderSystem = new TextureLoaderSystem(Content);
+        textureLoaderSystem = TextureLoaderSystem.Create(Content);
         worldBuilder.AddSystem(textureLoaderSystem);
 
         World = worldBuilder.Build();
@@ -71,7 +71,7 @@ public class GameScene : IScene
         players[0].LoadContent(Instance, Content.Load<Texture2D>("Textures/Warrior_Sheet-Effect"), "Textures/Warrior_Sheet-Effect.sf");
         players[1].LoadContent(Instance, Content.Load<Texture2D>("Textures/Mino"), "Textures/Mino.sf");
 
-        textureLoaderSystem.LoadEntities(players.Select(player => player.entity));
+        textureLoaderSystem.LoadEntities(players.Select(player => player.entity), players.Select(player => player.entity.Get<SpriteComponent>().Texture.Name)) ;
     }
 
     public void Update()
