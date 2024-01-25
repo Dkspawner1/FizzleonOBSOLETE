@@ -1,9 +1,10 @@
-﻿using Fizzleon.Scenes;
+﻿using Fizzleon.ECS.Systems;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace Fizzleon.ECS.Components
 {
-    public class SceneTransitionComponent 
+    public class SceneTransitionComponent
     {
         public enum TransitionState
         {
@@ -17,13 +18,12 @@ namespace Fizzleon.ECS.Components
         private const float transitionSpeed = 0.1f;
         private float transitionAlpha = 0f;
         private Texture2D fadeTexture;
-        private Game Instance;
+        private TextureLoaderSystem textureLoaderSystem;
 
-        public SceneTransitionComponent(Game instance)
+        public SceneTransitionComponent(TextureLoaderSystem textureLoaderSystem)
         {
-            Instance = instance;
-
-            fadeTexture = instance.Content.Load<Texture2D>("Textures/Warrior_Sheet-Effect");
+            this.textureLoaderSystem = textureLoaderSystem;
+            fadeTexture = textureLoaderSystem?.LoadTransitionTexture("Textures/btn0") ?? throw new ArgumentNullException(nameof(textureLoaderSystem));
             CurrentTransitionState = TransitionState.None;
         }
 
@@ -31,7 +31,8 @@ namespace Fizzleon.ECS.Components
         {
             CurrentTransitionState = TransitionState.TransitionIn;
 
-            transitionAlpha += transitionSpeed * (float)Data.GameTime.ElapsedGameTime.TotalMilliseconds;
+            transitionAlpha = Math.Min(1f, transitionAlpha + transitionSpeed * (float)Data.GameTime.ElapsedGameTime.TotalMilliseconds);
+
             if (transitionAlpha >= 1f)
             {
                 transitionAlpha = 1f;
@@ -39,11 +40,12 @@ namespace Fizzleon.ECS.Components
             }
         }
 
+
         public void TransitionOut()
         {
             CurrentTransitionState = TransitionState.TransitionOut;
 
-            transitionAlpha -= transitionSpeed * (float)Data.GameTime.ElapsedGameTime.TotalMilliseconds;
+            transitionAlpha = Math.Max(0f, transitionAlpha - transitionSpeed * (float)Data.GameTime.ElapsedGameTime.TotalMilliseconds);
 
             if (transitionAlpha <= 0f)
             {
@@ -54,7 +56,7 @@ namespace Fizzleon.ECS.Components
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(fadeTexture, new Rectangle(0, 0, Instance.GraphicsDevice.Viewport.Width, Instance.GraphicsDevice.Viewport.Height), new Color(255, 255, 255, (int)(255 * transitionAlpha)));
+            spriteBatch.Draw(fadeTexture, new Rectangle(0, 0, Data.Window.Width, Data.Window.Height), new Color(255, 255, 255, (int)(255 * transitionAlpha)));
 
         }
     }

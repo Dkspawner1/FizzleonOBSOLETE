@@ -1,4 +1,6 @@
 ﻿using Fizzleon.ECS.Components;
+using Fizzleon.ECS.Systems;
+using Microsoft.Xna.Framework.Content;
 using MonoGame.Extended.Content;
 using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
@@ -9,21 +11,19 @@ using System.Collections.Generic;
 
 public class TextureLoaderSystem : ISystem
 {
-    private readonly ContentManager contentManager;
-    private readonly Dictionary<string, Texture2D> loadedTextures = new Dictionary<string, Texture2D>();
+    private readonly ContentInitializationSystem contentInitializationSystem;
 
-    // Declare the menuEntities list as a private field
     private readonly List<Entity> menuEntities = new List<Entity>();
 
-    public static TextureLoaderSystem Create(ContentManager contentManager)
+    private readonly Dictionary<string, Texture2D> loadedTextures = new Dictionary<string, Texture2D>();
+
+    public static TextureLoaderSystem Create(ContentInitializationSystem contentInitializationSystem) => new TextureLoaderSystem(contentInitializationSystem);
+
+    private TextureLoaderSystem(ContentInitializationSystem contentInitializationSystem)
     {
-        return new TextureLoaderSystem(contentManager);
+        this.contentInitializationSystem = contentInitializationSystem;
     }
 
-    private TextureLoaderSystem(ContentManager contentManager)
-    {
-        this.contentManager = contentManager;
-    }
 
     public void LoadEntities(IEnumerable<Entity> entities, IEnumerable<string> paths)
     {
@@ -56,50 +56,33 @@ public class TextureLoaderSystem : ISystem
     {
         menuEntities.Add(entity);
     }
-
-    public Texture2D LoadTexture(Entity entity, string path = null)
+    public Texture2D LoadTexture(Entity entity, string path)
     {
-        if (entity == null)
+        if (entity != null)
         {
-            throw new ArgumentNullException(nameof(entity), "Entity cannot be null when loading texture.");
+            var spriteComponent = entity.Get<SpriteComponent>();
+            if (spriteComponent != null)
+            {
+                return spriteComponent.Texture; // Return the loaded texture
+            }
+            else
+            {
+                // Handle the case where SpriteComponent is not attached
+                return null; // or return a default texture, or throw an exception, depending on your design
+            }
         }
-
-        // Check if the entity has a SpriteComponent attached
-        if (!entity.Has<SpriteComponent>())
+        else
         {
-            throw new InvalidOperationException("Entity must have a SpriteComponent when loading texture.");
+            // Handle the case where entity is null
+            return null; // or return a default texture, or throw an exception, depending on your design
         }
-
-        var spriteComponent = entity.Get<SpriteComponent>();
-
-        if (path == null)
-        {
-            throw new ArgumentNullException(nameof(path), "Path must be specified when loading texture for an entity.");
-        }
-
-        if (!loadedTextures.ContainsKey(path))
-        {
-            var loadedTexture = contentManager.Load<Texture2D>(path);
-            loadedTextures[path] = loadedTexture;
-            spriteComponent.Texture = loadedTexture;
-        }
-
-        if (entity.Has<AnimationComponent>())
-        {
-            var animationComponent = entity.Get<AnimationComponent>();
-            LoadAnimation(animationComponent);
-        }
-
-        return spriteComponent.Texture;
     }
-
     private void LoadMenuEntity(Entity menuEntity)
     {
         var menuComponent = menuEntity.Get<MenuComponent>();
 
         if (!loadedTextures.ContainsKey(menuComponent.Texture.Name))
         {
-            // Declare the SpriteComponent variable outside the if block
             SpriteComponent spriteComponent;
 
             // Check if the entity already has a SpriteComponent
@@ -116,7 +99,7 @@ public class TextureLoaderSystem : ISystem
             }
 
             // Load the texture and set it for the SpriteComponent
-            var loadedTexture = contentManager.Load<Texture2D>(menuComponent.Texture.Name);
+            var loadedTexture = contentInitializationSystem.Load<Texture2D>(menuComponent.Texture.Name);
             loadedTextures[menuComponent.Texture.Name] = loadedTexture;
 
             // Make sure the SpriteComponent's Texture property is updated
@@ -126,7 +109,7 @@ public class TextureLoaderSystem : ISystem
 
     private void LoadAnimation(AnimationComponent animationComponent)
     {
-        animationComponent.SpriteSheet = contentManager.Load<SpriteSheet>(animationComponent.PathToSF, new JsonContentLoader());
+        animationComponent.SpriteSheet = contentInitializationSystem.LoadSpriteSheet(animationComponent.PathToSF, new JsonContentLoader());
         animationComponent.AnimatedSprite = new AnimatedSprite(animationComponent.SpriteSheet);
     }
 
@@ -138,8 +121,18 @@ public class TextureLoaderSystem : ISystem
         }
 
         loadedTextures.Clear();
+    }
+    public Texture2D LoadTransitionTexture(string path)
+    {
+        contentInitializationSystem.Load<Texture2D>(path);
 
-        contentManager.Unload();
+        if (!loadedTextures.ContainsKey(path))
+        {
+            var loadedTexture = contentInitializationSystem.Load<Texture2D>(path);
+            loadedTextures[path] = loadedTexture;
+        }
+
+        return loadedTextures[path];
     }
 
     public void Initialize(World world)

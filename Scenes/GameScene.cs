@@ -17,38 +17,43 @@ public class GameScene : IScene
     private Entity sceneEntity;
     public Entity SceneEntity => sceneEntity;
 
-    private readonly SceneTransitionComponent transitionComponent;
-    public SceneTransitionComponent TransitionComponent => transitionComponent;
-
     private KeyboardState kb;
 
     private WorldBuilder worldBuilder;
-    private TextureLoaderSystem textureLoaderSystem;
-
     private List<Player> players { get; set; }
 
-    protected Game1 Instance { get; private set; }
+    private readonly TextureLoaderSystem textureLoaderSystem;
+    private ContentInitializationSystem contentInitializationSystem;
+    public SceneTransitionComponent TransitionComponent => transitionComponent;
+    private readonly SceneTransitionComponent transitionComponent;
+    private TransitionSystem transitionSystem;
 
-    private ContentManager Content;
-    public GameScene(Game1 instance)
+    public GameScene(TextureLoaderSystem textureLoaderSystem, SceneManager sceneManager)
     {
-        Instance = instance;
+        this.textureLoaderSystem = textureLoaderSystem;
 
-        transitionComponent = new SceneTransitionComponent(Instance);
+        contentInitializationSystem = ContentInitializationSystem.Create(Data.Content);
 
-        Content = new ContentManager(instance.Services, "Content");
+        // Initialize the transition component
+        transitionComponent = new SceneTransitionComponent(textureLoaderSystem);
+
+        // Pass the SceneManager instance to the TransitionSystem
+        transitionSystem = new TransitionSystem(sceneManager);
     }
 
     public void Initialize()
     {
-        worldBuilder = new WorldBuilder()
-            .AddSystem(new RenderSystem())
-            .AddSystem(new AnimationInitializationSystem(Content))
-            .AddSystem(new AnimationUpdateSystem(Content))
-            .AddSystem(new TransitionSystem());
+        var contentInitializationSystem = ContentInitializationSystem.Create(Data.Content);
+        var textureLoaderSystem = TextureLoaderSystem.Create(contentInitializationSystem);
+        var sceneTransitionComponent = new SceneTransitionComponent(textureLoaderSystem);
 
-        textureLoaderSystem = TextureLoaderSystem.Create(Content);
-        worldBuilder.AddSystem(textureLoaderSystem);
+        worldBuilder = new WorldBuilder()
+           .AddSystem(contentInitializationSystem)
+           .AddSystem(textureLoaderSystem)
+           .AddSystem(new RenderSystem())
+           .AddSystem(new AnimationInitializationSystem(Data.Content))
+           .AddSystem(new AnimationUpdateSystem(Data.Content))
+           .AddSystem(transitionSystem);
 
         World = worldBuilder.Build();
 
@@ -68,18 +73,26 @@ public class GameScene : IScene
 
     public void LoadContent()
     {
-        players[0].LoadContent(Instance, Content.Load<Texture2D>("Textures/Warrior_Sheet-Effect"), "Textures/Warrior_Sheet-Effect.sf");
-        players[1].LoadContent(Instance, Content.Load<Texture2D>("Textures/Mino"), "Textures/Mino.sf");
+        players[0].LoadContent(textureLoaderSystem, "Textures/Warrior_Sheet-Effect", "Textures/Warrior_Sheet-Effect.sf");
+        players[1].LoadContent(textureLoaderSystem, "Textures/Mino", "Textures/Mino.sf");
 
-        textureLoaderSystem.LoadEntities(players.Select(player => player.entity), players.Select(player => player.entity.Get<SpriteComponent>().Texture.Name)) ;
+        textureLoaderSystem.LoadEntities(
+            players
+                .Where(player => player.entity != null)
+                .Select(player => player.entity),
+            players
+                .Where(player => player.entity != null && player.entity.Has<SpriteComponent>())
+                .Select(player => player.entity.Get<SpriteComponent>()?.Texture?.Name)
+                .Where(textureName => textureName != null)
+        );
     }
 
-    public void Update()
+    public void Update(GameTime gameTime)
     {
         HandleInput();
         players[0].Update("runRight", "idleRight");
         players[1].Update("idle-right", "run-right");
-        World.Update(new GameTime());
+        World.Update(gameTime);
     }
 
     private void HandleInput()
@@ -87,6 +100,7 @@ public class GameScene : IScene
         kb = Keyboard.GetState();
         if (kb.IsKeyDown(Keys.D1))
             IsSceneChangeRequested = true;
+
     }
 
     public void Draw()
@@ -104,7 +118,7 @@ public class GameScene : IScene
         players.Clear();
 
 
-        Content.Unload();
+        Data.Content.Unload();
 
 
         World.Dispose();
@@ -112,13 +126,11 @@ public class GameScene : IScene
 
     public void TransitionIn()
     {
-        // Use the generic TransitionIn method
         TransitionComponent.TransitionIn();
     }
 
     public void TransitionOut()
     {
-        // Use the generic TransitionOut method
         TransitionComponent.TransitionOut();
     }
 }

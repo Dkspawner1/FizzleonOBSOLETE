@@ -4,15 +4,18 @@ using static Fizzleon.Core.Data.GameState;
 using Fizzleon.Scenes;  // Add reference to your scene namespace
 using System;
 using MonoGame.Extended.Entities.Systems;
+using Fizzleon.Managers;
 
 namespace Fizzleon.ECS.Systems
 {
-    public class TransitionSystem : EntityUpdateSystem 
+    public class TransitionSystem : EntityUpdateSystem
     {
         private ComponentMapper<SceneTransitionComponent> transitionMapper;
+        private SceneManager sceneManager;
 
-        public TransitionSystem() : base(Aspect.All(typeof(SceneTransitionComponent)))
+        public TransitionSystem(SceneManager sceneManager) : base(Aspect.All(typeof(SceneTransitionComponent)))
         {
+            this.sceneManager = sceneManager ?? throw new ArgumentNullException(nameof(sceneManager));
         }
 
         public override void Initialize(IComponentMapperService mapperService)
@@ -39,6 +42,12 @@ namespace Fizzleon.ECS.Systems
                     default:
                         break;
                 }
+            }
+
+            // Access the SceneManager instance and perform any necessary scene changes
+            if (sceneManager != null)
+            {
+                // Example: sceneManager.ChangeScene(newScene);
             }
         }
     }
