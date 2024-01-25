@@ -12,12 +12,12 @@ public interface IScene : IDisposable
     Entity SceneEntity { get; }
     SceneTransitionComponent TransitionComponent { get; }
 
-    void Initialize();
-    void LoadContent();
-    void Update();
-    void Draw();
-    void TransitionIn();
-    void TransitionOut();
+    abstract void Initialize();
+    abstract void LoadContent();
+    abstract void Update(GameTime gameTime);
+    abstract void Draw();
+    abstract void TransitionIn();
+    abstract void TransitionOut();
 
     bool IsSceneChangeRequested { get; set; }
 }

@@ -30,13 +30,13 @@ namespace Fizzleon.ECS.Entities
         public void Dispose() => entity.Destroy();
 
         // Pass the Game1 instance to LoadContent
-        public void LoadContent(Game1 instance, Texture2D texture, string pathToSF)
+        public void LoadContent(TextureLoaderSystem textureLoaderSystem, string textureName, string pathToSF)
         {
-            var sprite = new SpriteComponent(texture);
-            var animation = new AnimationComponent(pathToSF, sprite.Texture);
+            var loadedTexture = textureLoaderSystem.LoadTexture(entity, textureName);
+            var sprite = new SpriteComponent(loadedTexture);
 
-            // Use instance.Content here
-            animation.LoadContent(instance.Content);
+            var animation = new AnimationComponent(pathToSF, loadedTexture);
+            animation.LoadContent(Data.Content);
 
             sprite.SetTransform(entity.Get<TransformComponent>());
             animation.SetTransform(entity.Get<TransformComponent>());
