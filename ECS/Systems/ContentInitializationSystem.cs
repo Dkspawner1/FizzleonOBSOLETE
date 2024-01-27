@@ -9,7 +9,7 @@ namespace Fizzleon.ECS.Systems;
 public class ContentInitializationSystem : ISystem
 {
     private readonly ContentManager contentManager;
-    private readonly Dictionary<string,Texture2D> loadedTextures = new Dictionary<string,Texture2D>();
+    private readonly Dictionary<string, Texture2D> loadedTextures = new Dictionary<string, Texture2D>();
 
 
     private ContentInitializationSystem(ContentManager contentManager)
@@ -17,10 +17,8 @@ public class ContentInitializationSystem : ISystem
         this.contentManager = contentManager;
     }
 
-    public static ContentInitializationSystem Create(ContentManager contentManager)
-    {
-        return new ContentInitializationSystem(contentManager);
-    }
+    public static ContentInitializationSystem Create(ContentManager contentManager) => new ContentInitializationSystem(contentManager);
+
 
 
 

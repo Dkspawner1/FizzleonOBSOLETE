@@ -11,18 +11,23 @@ using System.Collections.Generic;
 
 public class TextureLoaderSystem : ISystem
 {
-    private readonly ContentInitializationSystem contentInitializationSystem;
 
     private readonly List<Entity> menuEntities = new List<Entity>();
 
     private readonly Dictionary<string, Texture2D> loadedTextures = new Dictionary<string, Texture2D>();
 
+
+    private readonly ContentInitializationSystem contentInitializationSystem;
+
     public static TextureLoaderSystem Create(ContentInitializationSystem contentInitializationSystem) => new TextureLoaderSystem(contentInitializationSystem);
+
 
     private TextureLoaderSystem(ContentInitializationSystem contentInitializationSystem)
     {
         this.contentInitializationSystem = contentInitializationSystem;
     }
+
+
 
 
     public void LoadEntities(IEnumerable<Entity> entities, IEnumerable<string> paths)
@@ -33,7 +38,7 @@ public class TextureLoaderSystem : ISystem
         {
             while (entityEnumerator.MoveNext() && pathEnumerator.MoveNext())
             {
-                LoadTexture(entityEnumerator.Current, pathEnumerator.Current);
+                ReloadTexture(entityEnumerator.Current, pathEnumerator.Current);
             }
         }
     }
@@ -56,26 +61,42 @@ public class TextureLoaderSystem : ISystem
     {
         menuEntities.Add(entity);
     }
-    public Texture2D LoadTexture(Entity entity, string path)
+    public void ReloadTexture(Entity entity, string path)
     {
         if (entity != null)
         {
-            var spriteComponent = entity.Get<SpriteComponent>();
-            if (spriteComponent != null)
+            // Check if the entity already has a SpriteComponent
+            if (!entity.Has<SpriteComponent>())
             {
-                return spriteComponent.Texture; // Return the loaded texture
+                // If not, create and attach a new SpriteComponent
+                var spriteComponent = new SpriteComponent(contentInitializationSystem.Load<Texture2D>(path));
+                entity.Attach(spriteComponent);
             }
             else
             {
-                // Handle the case where SpriteComponent is not attached
-                return null; // or return a default texture, or throw an exception, depending on your design
+                // If it already has a SpriteComponent, retrieve it
+                var spriteComponent = entity.Get<SpriteComponent>();
+
+                // Load the texture and set it for the SpriteComponent
+                var loadedTexture = contentInitializationSystem.Load<Texture2D>(path);
+                loadedTextures[path] = loadedTexture;
+
+                // Make sure the SpriteComponent's Texture property is updated
+                spriteComponent.Texture = loadedTexture;
             }
         }
         else
         {
             // Handle the case where entity is null
-            return null; // or return a default texture, or throw an exception, depending on your design
+            throw new InvalidOperationException("Entity is null.");
         }
+    }
+
+    public Texture2D LoadTexture(string path) => contentInitializationSystem.Load<Texture2D>(path);
+
+    public Texture2D LoadMenuTexture(string path)
+    {
+        return contentInitializationSystem.Load<Texture2D>(path);
     }
     private void LoadMenuEntity(Entity menuEntity)
     {
@@ -90,7 +111,7 @@ public class TextureLoaderSystem : ISystem
             {
                 // If not, create and attach a new SpriteComponent
                 spriteComponent = new SpriteComponent(null);
-                menuEntity.Attach(spriteComponent);
+                menuEntity.Attach(spriteComponent); // Attach SpriteComponent to the entity
             }
             else
             {
@@ -106,7 +127,27 @@ public class TextureLoaderSystem : ISystem
             spriteComponent.Texture = loadedTexture;
         }
     }
-
+    public void LoadButton(Entity entity, Texture2D texture)
+    {
+        if (entity != null && texture != null)
+        {
+            var spriteComponent = entity.Get<SpriteComponent>();
+            if (spriteComponent != null)
+            {
+                spriteComponent.Texture = texture; // Set the loaded texture
+            }
+            else
+            {
+                // Handle the case where SpriteComponent is not attached
+                throw new InvalidOperationException("SpriteComponent is not attached to the entity.");
+            }
+        }
+        else
+        {
+            // Handle the case where entity or its texture is null
+            throw new InvalidOperationException("Entity or its texture is null.");
+        }
+    }
     private void LoadAnimation(AnimationComponent animationComponent)
     {
         animationComponent.SpriteSheet = contentInitializationSystem.LoadSpriteSheet(animationComponent.PathToSF, new JsonContentLoader());

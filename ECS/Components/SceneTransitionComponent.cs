@@ -1,63 +1,68 @@
-﻿using Fizzleon.ECS.Systems;
-using Microsoft.Xna.Framework.Graphics;
-using System;
+﻿using System;
 
-namespace Fizzleon.ECS.Components
+public class SceneTransitionComponent
 {
-    public class SceneTransitionComponent
+    public enum TransitionState
     {
-        public enum TransitionState
+        None,
+        TransitionIn,
+        TransitionOut
+    }
+
+    public TransitionState CurrentTransitionState { get; set; }
+    public float TransitionAlpha { get; private set; }
+    public Texture2D FadeTexture { get; }
+
+    private const float transitionSpeed = 0.1f;
+
+    public SceneTransitionComponent(Texture2D fadeTexture)
+    {
+        FadeTexture = fadeTexture ?? throw new ArgumentNullException(nameof(fadeTexture));
+        CurrentTransitionState = TransitionState.None;
+        TransitionAlpha = 0f;
+    }
+
+    public void TransitionIn()
+    {
+        TransitionAlpha = MathHelper.Clamp(TransitionAlpha + transitionSpeed * (float)Data.GameTime.ElapsedGameTime.TotalMilliseconds, 0f, 1f);
+        if (TransitionAlpha >= 1f)
         {
-            None,
-            TransitionIn,
-            TransitionOut
-        }
-
-        public TransitionState CurrentTransitionState { get; private set; }
-
-        private const float transitionSpeed = 0.1f;
-        private float transitionAlpha = 0f;
-        private Texture2D fadeTexture;
-        private TextureLoaderSystem textureLoaderSystem;
-
-        public SceneTransitionComponent(TextureLoaderSystem textureLoaderSystem)
-        {
-            this.textureLoaderSystem = textureLoaderSystem;
-            fadeTexture = textureLoaderSystem?.LoadTransitionTexture("Textures/btn0") ?? throw new ArgumentNullException(nameof(textureLoaderSystem));
+            TransitionAlpha = 1f;
             CurrentTransitionState = TransitionState.None;
         }
+    }
 
-        public void TransitionIn()
+    public void TransitionOut()
+    {
+        TransitionAlpha = MathHelper.Clamp(TransitionAlpha - transitionSpeed * (float)Data.GameTime.ElapsedGameTime.TotalMilliseconds, 0f, 1f);
+        if (TransitionAlpha <= 0f)
         {
-            CurrentTransitionState = TransitionState.TransitionIn;
-
-            transitionAlpha = Math.Min(1f, transitionAlpha + transitionSpeed * (float)Data.GameTime.ElapsedGameTime.TotalMilliseconds);
-
-            if (transitionAlpha >= 1f)
-            {
-                transitionAlpha = 1f;
-                CurrentTransitionState = TransitionState.None;
-            }
+            TransitionAlpha = 0f;
+            CurrentTransitionState = TransitionState.None;
         }
+    }
 
-
-        public void TransitionOut()
+    public void Update()
+    {
+        switch (CurrentTransitionState)
         {
-            CurrentTransitionState = TransitionState.TransitionOut;
+            case TransitionState.TransitionIn:
+                TransitionIn();
+                break;
 
-            transitionAlpha = Math.Max(0f, transitionAlpha - transitionSpeed * (float)Data.GameTime.ElapsedGameTime.TotalMilliseconds);
+            case TransitionState.TransitionOut:
+                TransitionOut();
+                break;
 
-            if (transitionAlpha <= 0f)
-            {
-                transitionAlpha = 0f;
-                CurrentTransitionState = TransitionState.None;
-            }
+            case TransitionState.None:
+                // Do nothing or handle other logic if needed
+                break;
         }
+    }
 
-        public void Draw(SpriteBatch spriteBatch)
-        {
-            spriteBatch.Draw(fadeTexture, new Rectangle(0, 0, Data.Window.Width, Data.Window.Height), new Color(255, 255, 255, (int)(255 * transitionAlpha)));
-
-        }
+    public void Draw(SpriteBatch spriteBatch)
+    {
+        Debug.Assert(spriteBatch != null, "SpriteBatch cannot be null.");
+        spriteBatch.Draw(FadeTexture, Vector2.Zero, Color.Black * TransitionAlpha);
     }
 }

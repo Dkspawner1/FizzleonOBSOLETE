@@ -1,9 +1,8 @@
-﻿using Fizzleon.ECS;
-using Fizzleon.ECS.Components;
+﻿using Fizzleon.ECS.Components;
 using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
 
-namespace Fizzleon.Managers
+namespace Fizzleon.ECS.Systems
 {
     internal class RenderSystem : EntityDrawSystem
     {

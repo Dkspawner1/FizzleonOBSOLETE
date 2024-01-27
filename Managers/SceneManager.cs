@@ -4,12 +4,14 @@ using Fizzleon.Scenes;
 using static Fizzleon.Core.Data.GameState;
 using System.Collections.Generic;
 using System;
+using Fizzleon.ECS.Systems;
 
 namespace Fizzleon.Managers;
 
-public class SceneManager : List<IScene>, IGameComponent
+public class SceneManager : List<IScene>
 {
     public IScene CurrentScene { get; set; }
+    public ContentInitializationSystem ContentInitializationSystem { get; private set; }
 
     public event EventHandler<SceneChangedEventArgs> SceneChanged;
     private SceneChangeListener sceneChangeListener;
@@ -20,26 +22,38 @@ public class SceneManager : List<IScene>, IGameComponent
 
     protected Dictionary<GameStates, IScene> scenes;
 
-    private readonly TextureLoaderSystem textureLoaderSystem;
+    private TextureLoaderSystem textureLoaderSystem;
 
-    public SceneManager(TextureLoaderSystem textureLoaderSystem)
+    // Constructor with textureLoaderSystem parameter
+    public SceneManager(TextureLoaderSystem textureLoaderSystem, ContentManager contentManager)
     {
+        if (textureLoaderSystem == null)
+            throw new ArgumentNullException(nameof(textureLoaderSystem));
+
+        this.textureLoaderSystem = textureLoaderSystem;
+        this.ContentInitializationSystem = ContentInitializationSystem.Create(contentManager);
+
+    }
+    public void SetTextureLoaderSystem(TextureLoaderSystem textureLoaderSystem)
+    {
+        if (textureLoaderSystem == null)
+            throw new ArgumentNullException(nameof(textureLoaderSystem));
+
         this.textureLoaderSystem = textureLoaderSystem;
     }
-
-
-
     public void Initialize()
     {
-        menuScene = new MenuScene(textureLoaderSystem, this);
-        gameScene = new GameScene(textureLoaderSystem, this);
+        menuScene = new MenuScene(textureLoaderSystem, this, ContentInitializationSystem);
+        gameScene = new GameScene(textureLoaderSystem, this, ContentInitializationSystem);
+
+        // Add other scenes as needed
 
         scenes = new Dictionary<GameStates, IScene>
-            {
-                { GameStates.MENU, menuScene },
-                { GameStates.GAME, gameScene }
-                // Add other scenes as needed
-            };
+    {
+        { GameStates.MENU, menuScene },
+        { GameStates.GAME, gameScene }
+        // Add other scenes as needed
+    };
 
         foreach (var scene in scenes.Values)
         {
@@ -50,7 +64,6 @@ public class SceneManager : List<IScene>, IGameComponent
         CurrentScene = menuScene;
         sceneChangeListener = new SceneChangeListener(this);
     }
-
     public void LoadContent()
     {
 
@@ -59,26 +72,22 @@ public class SceneManager : List<IScene>, IGameComponent
 
     public void Update()
     {
+        if (CurrentScene == null)
+        {
+            // Handle the case where CurrentScene is null, possibly log an error
+            return;
+        }
+
+        CurrentScene.TransitionComponent.Update();
         CurrentScene.Update(Data.GameTime);
 
-        if (CurrentScene is GameScene)
+        if (CurrentScene.IsSceneChangeRequested)
         {
-            if (gameScene.IsSceneChangeRequested)
-            {
-                RequestSceneChange(CurrentScene, menuScene);
-                gameScene.IsSceneChangeRequested = false;
-            }
-        }
-        else if (CurrentScene is MenuScene)
-        {
-            if (menuScene.IsSceneChangeRequested)
-            {
-                RequestSceneChange(CurrentScene, gameScene);
-                menuScene.IsSceneChangeRequested = false;
-            }
+            IScene targetScene = (CurrentScene == gameScene) ? menuScene : gameScene;
+            RequestSceneChange(CurrentScene, targetScene);
+            CurrentScene.IsSceneChangeRequested = false;
         }
     }
-
 
     public void Draw()
     {

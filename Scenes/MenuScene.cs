@@ -1,13 +1,12 @@
 ﻿using Fizzleon.ECS.Components;
+using Fizzleon.ECS.Entities;
 using Fizzleon.ECS.Systems;
 using Fizzleon.Managers;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Entities;
 using System;
 using System.Collections.Generic;
 using static Fizzleon.Core.Data;
-using static Fizzleon.ECS.Components.SceneTransitionComponent;
+using static SceneTransitionComponent;
 
 namespace Fizzleon.Scenes
 {
@@ -21,50 +20,52 @@ namespace Fizzleon.Scenes
         private Entity sceneEntity;
         public Entity SceneEntity => sceneEntity;
 
+        private static List<ButtonEntity> buttonEntities = new List<ButtonEntity>();
 
-        private SceneTransitionComponent sceneTransition;
-        public SceneTransitionComponent TransitionComponent => sceneTransition;
 
         private readonly TextureLoaderSystem textureLoaderSystem;
         private ContentInitializationSystem contentInitializationSystem;
 
-        private List<Rectangle> buttonsRect = new();
-        private static List<MenuComponent> buttons = new List<MenuComponent>();
-        private List<Entity> buttonEntities = new List<Entity>();
-        private TransitionSystem transitionSystem;
 
+        private SceneTransitionComponent sceneTransition;
+        public SceneTransitionComponent TransitionComponent => sceneTransition;
+        private SceneTransitionSystem transitionSystem;
 
- 
-        private List<Texture2D> buttonTextures = new List<Texture2D>();
-        private List<Rectangle> buttonRectangles = new List<Rectangle>();
         private bool isWorldDisposed = false;
 
-        public MenuScene(TextureLoaderSystem textureLoaderSystem, SceneManager sceneManager)
+        public MenuScene(TextureLoaderSystem textureLoaderSystem, SceneManager sceneManager, ContentInitializationSystem contentInitializationSystem)
         {
+            this.textureLoaderSystem = textureLoaderSystem;
+            this.contentInitializationSystem = contentInitializationSystem;
+
             this.textureLoaderSystem = textureLoaderSystem;
 
             contentInitializationSystem = ContentInitializationSystem.Create(Content);
 
-            sceneTransition = new SceneTransitionComponent(textureLoaderSystem);
-            transitionSystem = new TransitionSystem(sceneManager);
+            sceneTransition = new SceneTransitionComponent(contentInitializationSystem.Load<Texture2D>("textures/btn0"));
+
+            transitionSystem = new SceneTransitionSystem(sceneManager);
         }
 
         public void Initialize()
         {
-            // Check if the World is already initialized or disposed
             if (World == null || isWorldDisposed)
             {
-                // Create a new World and other necessary components
                 var worldBuilder = new WorldBuilder()
-      .AddSystem(new RenderSystem())
-      .AddSystem(textureLoaderSystem)
-      .AddSystem(contentInitializationSystem)
-      .AddSystem(transitionSystem);
-
+                    .AddSystem(new RenderSystem())
+                    .AddSystem(textureLoaderSystem)
+                    .AddSystem(contentInitializationSystem)
+                    .AddSystem(transitionSystem);
 
                 World = worldBuilder.Build();
                 sceneEntity = World.CreateEntity();
                 sceneEntity.Attach(sceneTransition);
+
+                buttonEntities.Clear();
+
+                buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.LoadTexture("textures/btn0"), new Rectangle(100, 100, 200, 50)));
+                buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.LoadTexture("textures/btn1"), new Rectangle(100, 200, 200, 50)));
+                buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.LoadTexture("textures/btn2"), new Rectangle(100, 300, 200, 50)));
 
                 LoadContent();
 
@@ -78,34 +79,38 @@ namespace Fizzleon.Scenes
 
         public void LoadContent()
         {
-            buttons.Clear();
-            buttonEntities.Clear();
-
-            for (int i = 0; i < buttonTextures.Count; i++)
+            // Iterate through each button entity
+            foreach (var buttonEntity in buttonEntities)
             {
-                var buttonEntity = World.CreateEntity();
-                var menuComponent = new MenuComponent(buttonTextures[i], buttonRectangles[i]);
-                buttonEntity.Attach(menuComponent);
+                // Check if the button entity has a valid texture
+                if (buttonEntity.Texture != null)
+                {
+                    // Reload the texture into the texture loader system
+                    textureLoaderSystem.ReloadTexture(buttonEntity.SceneEntity, buttonEntity.Texture.Name);
 
-                textureLoaderSystem.AddMenuEntity(buttonEntity);
+                    // Access the SpriteComponent of the button entity
+                    var spriteComponent = buttonEntity.SceneEntity.Get<SpriteComponent>();
+
+                    // Check if the entity has a SpriteComponent
+                    if (spriteComponent == null)
+                    {
+                        // If not, create and attach a new SpriteComponent
+                        spriteComponent = new SpriteComponent(buttonEntity.Texture);
+                        buttonEntity.SceneEntity.Attach(spriteComponent);
+                    }
+                    else
+                    {
+                        // If it already has a SpriteComponent, update its texture
+                        spriteComponent.Texture = buttonEntity.Texture;
+                    }
+
+                    // Additional logic for the SpriteComponent if needed
+                }
+                else
+                {
+                    throw new InvalidOperationException("Button entity has a null texture.");
+                }
             }
-
-            textureLoaderSystem.LoadMenuItems(buttonEntities);
-
-            for (int i = 0; i < buttonEntities.Count; i++)
-            {
-                var buttonEntity = buttonEntities[i];
-                var menuComponent = buttonEntity.Get<MenuComponent>();
-
-                var buttonTexture = textureLoaderSystem.LoadTexture(buttonEntity, $"textures/btn{i}");
-                var buttonRectangle = new Rectangle(0, 125 + i * 150, buttonTexture.Width / 4, buttonTexture.Height / 4);
-
-                menuComponent.Texture = buttonTexture;
-                menuComponent.Rectangle = buttonRectangle;
-
-                buttons.Add(menuComponent);
-            }
-            sceneEntity.Get<SceneTransitionComponent>().TransitionIn();
         }
 
         private MouseState mouse, oldMouse;
@@ -119,48 +124,45 @@ namespace Fizzleon.Scenes
             mouse = Mouse.GetState();
             mouseRect = new Rectangle(mouse.X, mouse.Y, 1, 1);
 
-            // Update using the MenuComponent
-            for (int i = 0; i < buttons.Count; i++)
+            for (int i = 0; i < buttonEntities.Count; i++)
             {
-                if (mouseRect.Intersects(buttons[i].Rectangle) && mouse.LeftButton == ButtonState.Pressed)
+                if (mouseRect.Intersects(buttonEntities[i].Rectangle) && mouse.LeftButton == ButtonState.Pressed)
                 {
                     Trace.WriteLine($"Update: Button {i} pressed");
                     IsSceneChangeRequested = true;
                 }
             }
 
-            if (buttons.Count > 2 && mouseRect.Intersects(buttons[2].Rectangle) && mouse.LeftButton == ButtonState.Pressed)
+            if (buttonEntities.Count > 2 && mouseRect.Intersects(buttonEntities[2].Rectangle) && mouse.LeftButton == ButtonState.Pressed)
             {
                 Trace.WriteLine("Update: Exit button pressed");
                 Window.Exit = true;
             }
 
-            World.Update(gameTime);
         }
 
         public void Draw()
         {
+            TransitionComponent.Update();
+
             Data.SpriteBatch.Begin();
 
-            for (var i = 0; i < buttons.Count; i++)
+            for (var i = 0; i < buttonEntities.Count; i++)
             {
-                Data.SpriteBatch.Draw(buttons[i].Texture, buttons[i].Rectangle, Color.White);
+                Data.SpriteBatch.Draw(buttonEntities[i].Texture, buttonEntities[i].Rectangle, Color.White);
 
-
-                if (mouseRect.Intersects(buttons[i].Rectangle))
+                if (mouseRect.Intersects(buttonEntities[i].Rectangle))
                 {
-                    Data.SpriteBatch.Draw(buttons[i].Texture, buttons[i].Rectangle, Color.DarkGray);
+                    Data.SpriteBatch.Draw(buttonEntities[i].Texture, buttonEntities[i].Rectangle, Color.DarkGray);
                 }
             }
-
-            sceneEntity.Get<SceneTransitionComponent>().Draw(Data.SpriteBatch);
 
             Data.SpriteBatch.End();
         }
 
         public void Dispose()
         {
-            buttons.Clear();
+            buttonEntities.Clear();
             textureLoaderSystem?.Dispose();
 
             // Check if the World is not null before disposing

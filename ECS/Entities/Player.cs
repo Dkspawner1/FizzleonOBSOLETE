@@ -32,7 +32,7 @@ namespace Fizzleon.ECS.Entities
         // Pass the Game1 instance to LoadContent
         public void LoadContent(TextureLoaderSystem textureLoaderSystem, string textureName, string pathToSF)
         {
-            var loadedTexture = textureLoaderSystem.LoadTexture(entity, textureName);
+            var loadedTexture = textureLoaderSystem.LoadTexture(textureName);
             var sprite = new SpriteComponent(loadedTexture);
 
             var animation = new AnimationComponent(pathToSF, loadedTexture);
