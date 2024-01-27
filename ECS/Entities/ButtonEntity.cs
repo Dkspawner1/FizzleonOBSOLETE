@@ -1,19 +1,15 @@
-﻿using MonoGame.Extended.Entities;
-using System;
+﻿using System;
+using Fizzleon.ECS.Components;
+using MonoGame.Extended.Entities;
 
-public class ButtonEntity : IDisposable
+namespace Fizzleon.ECS.Entities;
+
+public class ButtonEntity(Entity sceneEntity, Texture2D texture, Rectangle rectangle) : SpriteComponent(texture), IDisposable
 {
-    public Texture2D Texture { get; set; }
-    public Rectangle Rectangle { get; set; }
-    public Entity SceneEntity { get; set; } 
-    public ButtonEntity(Entity sceneEntity, Texture2D texture, Rectangle rectangle)
-    {
-        SceneEntity = sceneEntity;
-        Texture = texture;
-        Rectangle = rectangle;
-    }
-
+    public Rectangle Rectangle { get; set; } = rectangle;
+    public Entity SceneEntity { get; set; } = sceneEntity;
     public void Dispose()
     {
+        
     }
 }

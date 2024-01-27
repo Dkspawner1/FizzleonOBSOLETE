@@ -1,15 +1,8 @@
-﻿namespace Fizzleon.ECS;
+﻿namespace Fizzleon.ECS.Components;
 
-internal class TransformComponent 
+public class TransformComponent(Vector2 position)
 {
-    public Vector2 Position { get; set; }
-    public float Rotation { get; set; }
-    public Vector2 Scale { get; set; }
-    public TransformComponent(Vector2 position)
-    {
-        Position = position;
-        Rotation = 0f;
-        Scale = Vector2.One;
-    }
-   
+    public Vector2 Position { get; set; } = position;
+    public float Rotation { get; set; } = 0f;
+    public Vector2 Scale { get; set; } = Vector2.One;
 }

@@ -6,12 +6,15 @@ using MonoGame.Extended.Entities;
 using System;
 using System.Collections.Generic;
 using static Fizzleon.Core.Data;
-using static SceneTransitionComponent;
+using static Fizzleon.ECS.Components.SceneTransitionComponent;
 
 namespace Fizzleon.Scenes
 {
+    
     public class MenuScene : IScene
     {
+        
+        
         public TransitionState CurrentTransitionState => TransitionState.None;
         public World World { get; set; }
         public GameState.GameStates SceneId => GameState.GameStates.MENU;
@@ -20,29 +23,23 @@ namespace Fizzleon.Scenes
         private Entity sceneEntity;
         public Entity SceneEntity => sceneEntity;
 
-        private static List<ButtonEntity> buttonEntities = new List<ButtonEntity>();
+        private static readonly List<ButtonEntity> buttonEntities = new();
 
 
         private readonly TextureLoaderSystem textureLoaderSystem;
-        private ContentInitializationSystem contentInitializationSystem;
 
 
-        private SceneTransitionComponent sceneTransition;
+        private readonly SceneTransitionComponent sceneTransition;
         public SceneTransitionComponent TransitionComponent => sceneTransition;
-        private SceneTransitionSystem transitionSystem;
+        private readonly SceneTransitionSystem transitionSystem;
 
         private bool isWorldDisposed = false;
 
-        public MenuScene(TextureLoaderSystem textureLoaderSystem, SceneManager sceneManager, ContentInitializationSystem contentInitializationSystem)
+        public MenuScene(TextureLoaderSystem textureLoaderSystem, SceneManager sceneManager)
         {
             this.textureLoaderSystem = textureLoaderSystem;
-            this.contentInitializationSystem = contentInitializationSystem;
-
-            this.textureLoaderSystem = textureLoaderSystem;
-
-            contentInitializationSystem = ContentInitializationSystem.Create(Content);
-
-            sceneTransition = new SceneTransitionComponent(contentInitializationSystem.Load<Texture2D>("textures/btn0"));
+          
+            sceneTransition = new SceneTransitionComponent(Data.ContentInitializationSystem.Load<Texture2D>("textures/btn0"));
 
             transitionSystem = new SceneTransitionSystem(sceneManager);
         }
@@ -54,7 +51,6 @@ namespace Fizzleon.Scenes
                 var worldBuilder = new WorldBuilder()
                     .AddSystem(new RenderSystem())
                     .AddSystem(textureLoaderSystem)
-                    .AddSystem(contentInitializationSystem)
                     .AddSystem(transitionSystem);
 
                 World = worldBuilder.Build();
@@ -63,9 +59,9 @@ namespace Fizzleon.Scenes
 
                 buttonEntities.Clear();
 
-                buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.LoadTexture("textures/btn0"), new Rectangle(100, 100, 200, 50)));
-                buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.LoadTexture("textures/btn1"), new Rectangle(100, 200, 200, 50)));
-                buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.LoadTexture("textures/btn2"), new Rectangle(100, 300, 200, 50)));
+                buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.Load<Texture2D>("textures/btn0"), new Rectangle(100, 100, 200, 50)));
+                buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.Load<Texture2D>("textures/btn1"), new Rectangle(100, 200, 200, 50)));
+                buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.Load<Texture2D>("textures/btn2"), new Rectangle(100, 300, 200, 50)));
 
                 LoadContent();
 
@@ -78,6 +74,11 @@ namespace Fizzleon.Scenes
         }
 
         public void LoadContent()
+        {
+            LoadButtons();
+          
+        }
+        private void LoadButtons()
         {
             // Iterate through each button entity
             foreach (var buttonEntity in buttonEntities)
@@ -104,7 +105,6 @@ namespace Fizzleon.Scenes
                         spriteComponent.Texture = buttonEntity.Texture;
                     }
 
-                    // Additional logic for the SpriteComponent if needed
                 }
                 else
                 {

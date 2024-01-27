@@ -4,43 +4,33 @@ using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
 using MonoGame.Extended.Sprites;
 using System.Collections.Generic;
+using System.Net.Http.Json;
+using MonoGame.Extended.Serialization;
+using System;
 
 namespace Fizzleon.ECS.Systems;
-public class ContentInitializationSystem : ISystem
+public class ContentInitializationSystem : IDisposable
 {
-    private readonly ContentManager contentManager;
-    private readonly Dictionary<string, Texture2D> loadedTextures = new Dictionary<string, Texture2D>();
+    private readonly Dictionary<string, Texture2D> loadedTextures = new();
+    private protected ContentManager Content;
 
+    public ContentInitializationSystem(ContentManager content) => Content = content;
 
-    private ContentInitializationSystem(ContentManager contentManager)
+    public static ContentInitializationSystem Create(ContentManager content)
     {
-        this.contentManager = contentManager;
+        return new ContentInitializationSystem(content);
     }
 
-    public static ContentInitializationSystem Create(ContentManager contentManager) => new ContentInitializationSystem(contentManager);
-
-
-
-
-    public void LoadTextures(IEnumerable<string> texturePaths)
+    public T Load<T>(string path, IContentLoader contentLoader)
     {
-        foreach (var path in texturePaths)
-        {
-            if (!loadedTextures.ContainsKey(path))
-            {
-                var loadedTexture = contentManager.Load<Texture2D>(path);
-                loadedTextures[path] = loadedTexture;
-            }
-        }
+
+        return contentLoader.Load<T>(Content, path);
     }
     public T Load<T>(string assetName)
     {
-        return contentManager.Load<T>(assetName);
+        return Content.Load<T>(assetName);
     }
-    public SpriteSheet LoadSpriteSheet(string assetName, IContentLoader contentLoader)
-    {
-        return contentManager.Load<SpriteSheet>(assetName, contentLoader);
-    }
+
     public void Dispose()
     {
         foreach (var loadedTexture in loadedTextures.Values)
@@ -48,13 +38,10 @@ public class ContentInitializationSystem : ISystem
             loadedTexture.Dispose();
         }
 
-
         loadedTextures.Clear();
-        contentManager.Unload();
+        Content.Unload();
     }
-
     public void Initialize(World world)
     {
-        // You can perform additional initialization here if needed
     }
 }

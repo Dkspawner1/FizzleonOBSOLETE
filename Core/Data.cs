@@ -1,11 +1,13 @@
-﻿using MonoGame.Extended.Input.InputListeners;
+﻿using Fizzleon.ECS.Systems;
+using MonoGame.Extended.Input.InputListeners;
 
 namespace Fizzleon.Core;
 
 public sealed record Data
 {
-    public static ContentManager Content { get; set; }
     public static GameTime GameTime { get; set; }
+    public static ContentInitializationSystem ContentInitializationSystem { get; set; }
+
     public static GraphicsDeviceManager Graphics { get; set; }
     public static SpriteBatch SpriteBatch { get; set; }
     public static MouseListener MouseListener;

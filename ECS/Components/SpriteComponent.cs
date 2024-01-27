@@ -1,28 +1,21 @@
 ﻿namespace Fizzleon.ECS.Components;
 
-internal class SpriteComponent
+public class SpriteComponent(Texture2D texture) 
 {
-    public Texture2D Texture { get; set; }
-    public TransformComponent Transform { get; set; }
+    public Texture2D Texture { get; set; } = texture;
+    public TransformComponent Transform { get; set; }   
 
-    public SpriteComponent(Texture2D texture)
+    public virtual void Draw()
     {
-        Texture = texture;
-    }
-
-    public void SetTransform(TransformComponent transform) => Transform = transform;
-
-    public virtual void Draw(SpriteBatch spriteBatch)
-    {
-        if (spriteBatch is { IsDisposed: false } && Transform is { } transformable)
-            spriteBatch.Draw(
+        if (Data.SpriteBatch is { IsDisposed: false })
+            Data.SpriteBatch.Draw(
                 Texture,
-                transformable.Position,
+                Transform.Position,
                 null,
                 Color.White,
-                transformable.Rotation,
+                Transform.Rotation,
                 Vector2.Zero,
-                transformable.Scale,
+                Transform.Scale,
                 SpriteEffects.None,
                 0f
             );

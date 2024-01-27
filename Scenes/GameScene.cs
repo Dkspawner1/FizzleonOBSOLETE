@@ -5,7 +5,7 @@ using Fizzleon.Managers;
 using MonoGame.Extended.Entities;
 using System.Collections.Generic;
 using static Fizzleon.Core.Data.GameState;
-using static SceneTransitionComponent;
+using static Fizzleon.ECS.Components.SceneTransitionComponent;
 
 public class GameScene : IScene
 {
@@ -16,53 +16,54 @@ public class GameScene : IScene
     private Entity sceneEntity;
     public Entity SceneEntity => sceneEntity;
 
+    public SceneTransitionComponent TransitionComponent => sceneTransition;
+    private SceneTransitionComponent sceneTransition;
+
     private KeyboardState kb;
 
     private WorldBuilder worldBuilder;
-    private List<Player> players { get; set; }
+    private List<Player> Players { get; set; }
 
     private readonly TextureLoaderSystem textureLoaderSystem;
-    private ContentInitializationSystem contentInitializationSystem;
 
     public TransitionState CurrentTransitionState => TransitionState.None;
-    public SceneTransitionComponent TransitionComponent => transitionComponent;
 
-    private SceneTransitionComponent transitionComponent;
+    private readonly SceneTransitionSystem transitionSystem;
 
-    private SceneTransitionSystem transitionSystem;
-
-    public GameScene(TextureLoaderSystem textureLoaderSystem, SceneManager sceneManager, ContentInitializationSystem contentInitializationSystem)
+    public GameScene(TextureLoaderSystem textureLoaderSystem, SceneManager sceneManager)
     {
         this.textureLoaderSystem = textureLoaderSystem;
-        this.contentInitializationSystem = contentInitializationSystem;
         this.textureLoaderSystem = textureLoaderSystem;
 
         transitionSystem = new SceneTransitionSystem(sceneManager);
     }
     public void Initialize()
     {
-        transitionComponent = new SceneTransitionComponent(Data.Content.Load<Texture2D>("textures/btn0"));
+        sceneTransition = new SceneTransitionComponent(textureLoaderSystem.Load<Texture2D>("textures/btn0"));
 
 
         worldBuilder = new WorldBuilder()
-           .AddSystem(contentInitializationSystem)
            .AddSystem(textureLoaderSystem)
            .AddSystem(new RenderSystem())
-           .AddSystem(new AnimationInitializationSystem(Data.Content))
-           .AddSystem(new AnimationUpdateSystem(Data.Content))
+           .AddSystem(new AnimationInitializationSystem())
+           .AddSystem(new AnimationUpdateSystem())
            .AddSystem(transitionSystem);
 
         World = worldBuilder.Build();
 
-        players = new List<Player>
+        Players = new List<Player>
         {
             new Player(World, new Vector2(300, 500), 200f),
             new Player(World, new Vector2(700, 200), 175f)
         };
+        Players[0].Entity.Attach(new TransformComponent(new Vector2(100,100)));
+        Players[1].Entity.Attach(new TransformComponent(new Vector2(100, 100)));
+
+
+
 
         sceneEntity = World.CreateEntity();
-
-        sceneEntity.Attach(transitionComponent);
+        sceneEntity.Attach(sceneTransition);
 
         LoadContent();
     }
@@ -71,28 +72,28 @@ public class GameScene : IScene
     public void LoadContent()
     {
 
-        players[0].LoadContent(textureLoaderSystem, "Textures/Warrior_Sheet-Effect", "Textures/Warrior_Sheet-Effect.sf");
-        players[1].LoadContent(textureLoaderSystem, "Textures/Mino", "Textures/Mino.sf");
+        Players[0].LoadContent(textureLoaderSystem, "Textures/Warrior_Sheet-Effect", "Textures/Warrior_Sheet-Effect.sf");
+        Players[1].LoadContent(textureLoaderSystem, "Textures/Mino", "Textures/Mino.sf");
 
-        var playerTextures = players
-            .Where(player => player.entity != null)
-            .Select(player => player.entity.Get<SpriteComponent>()?.Texture)
+        var playerTextures = Players
+            .Where(player => player.Entity != null)
+            .Select(player => player.Entity.Get<SpriteComponent>()?.Texture)
             .Where(texture => texture != null);
 
         textureLoaderSystem.LoadEntities(
-    players
-        .Where(player => player.entity != null)
-        .Select(player => player.entity),
+    Players
+        .Where(player => player.Entity != null)
+        .Select(player => player.Entity),
         playerTextures.Select(texture => texture.Name));
     }
 
     public void Update(GameTime gameTime)
     {
         HandleInput();
-        players[0].Update("runRight", "idleRight");
-        players[1].Update("idle-right", "run-right");
+        Players[0].Update("runRight", "idleRight");
+        Players[1].Update("idle-right", "run-right");
         World.Update(gameTime);
-        transitionComponent.Update();
+        sceneTransition.Update();
 
     }
 
@@ -106,20 +107,17 @@ public class GameScene : IScene
 
     public void Draw()
     {
-        World.Draw(new GameTime());
+        World.Draw(Data.GameTime);
     }
 
     public void Dispose()
     {
-        foreach (var player in players)
+        foreach (var player in Players)
         {
             player.Dispose();
         }
 
-        players.Clear();
-
-
-        Data.Content.Unload();
+        Players.Clear();
 
 
         World.Dispose();

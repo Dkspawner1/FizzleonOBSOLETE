@@ -4,15 +4,9 @@ using MonoGame.Extended.Entities.Systems;
 
 namespace Fizzleon.ECS.Systems
 {
-    internal class AnimationUpdateSystem : EntityUpdateSystem
+    public class AnimationUpdateSystem() : EntityUpdateSystem(Aspect.All(typeof(AnimationComponent)))
     {
         private ComponentMapper<AnimationComponent> animationMapper;
-
-
-        public AnimationUpdateSystem(ContentManager contentManager)
-            : base(Aspect.All(typeof(AnimationComponent)))
-        {
-        }
 
         public override void Initialize(IComponentMapperService mapperService)
         {

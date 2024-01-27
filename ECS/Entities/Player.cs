@@ -6,43 +6,33 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using Fizzleon.ECS.Systems;
 
 namespace Fizzleon.ECS.Entities
 {
     public class Player : IDisposable
     {
-        public readonly Entity entity;
+        public readonly Entity Entity;
 
-        // Used for game
         public Player(World world, Vector2 spawn, float speed)
         {
-            entity = world.CreateEntity();
-            entity.Attach(new TransformComponent(spawn));
-            entity.Attach(new MovementComponent());
-            entity.Attach(new PlayerComponent(speed));
+            Entity = world.CreateEntity();
+            Entity.Attach(new TransformComponent(spawn));
+            Entity.Attach(new MovementComponent());
+            Entity.Attach(new PlayerComponent(speed));
+
         }
 
-        public Player(BindPlayerToNetwork networkPlayer)
+
+
+        public void LoadContent(TextureLoaderSystem textureLoaderSystem, string pathToXnb, string pathToSf)
         {
-            networkPlayer = new BindPlayerToNetwork(this, networkPlayer.Connection);
-        }
+            var animation = new AnimationComponent(textureLoaderSystem,pathToXnb, pathToSf);
+            var animationSprite = new SpriteComponent(animation.Texture);
+            animation.Transform = new TransformComponent(new Vector2(100, 100));
+            Entity.Attach(animationSprite);
+            Entity.Attach(animation);
 
-        public void Dispose() => entity.Destroy();
-
-        // Pass the Game1 instance to LoadContent
-        public void LoadContent(TextureLoaderSystem textureLoaderSystem, string textureName, string pathToSF)
-        {
-            var loadedTexture = textureLoaderSystem.LoadTexture(textureName);
-            var sprite = new SpriteComponent(loadedTexture);
-
-            var animation = new AnimationComponent(pathToSF, loadedTexture);
-            animation.LoadContent(Data.Content);
-
-            sprite.SetTransform(entity.Get<TransformComponent>());
-            animation.SetTransform(entity.Get<TransformComponent>());
-
-            entity.Attach(sprite);
-            entity.Attach(animation);
         }
 
         public void Update(params string[] animationKeys)
@@ -50,27 +40,22 @@ namespace Fizzleon.ECS.Entities
             UpdatePlayerAnimation();
             UpdatePlayerMovement();
 
-            // Update the player's position based on velocity
-            var transform = entity.Get<TransformComponent>();
-            var playerMovement = entity.Get<MovementComponent>();
+            var transform = Entity.Get<TransformComponent>();
+            var playerMovement = Entity.Get<MovementComponent>();
 
-            // Update the position using the velocity
             transform.Position += playerMovement.Velocity * (float)Data.GameTime.ElapsedGameTime.TotalSeconds;
 
-            entity.Get<AnimationComponent>().Play(animationKeys.FirstOrDefault(), true, () => { });
+            Entity.Get<AnimationComponent>().Play(animationKeys.FirstOrDefault(), () => { });
         }
 
-        private void UpdatePlayerAnimation() => entity.Get<AnimationComponent>().Update();
+        private void UpdatePlayerAnimation() => Entity.Get<AnimationComponent>().Update();
+
 
         private void UpdatePlayerMovement()
         {
-            var playerMovement = entity.Get<MovementComponent>();
-            var playerSpeed = entity.Get<PlayerComponent>().Speed;
-
-            // Get the current state of the keyboard
+            var playerMovement = Entity.Get<MovementComponent>();
+            var playerSpeed = Entity.Get<PlayerComponent>().Speed;
             var currentKeyboardState = Keyboard.GetState();
-
-            // Determine the horizontal movement based on keyboard input
             float horizontalMovement = 0;
 
             if (currentKeyboardState.IsKeyDown(Keys.Left))
@@ -79,8 +64,9 @@ namespace Fizzleon.ECS.Entities
             if (currentKeyboardState.IsKeyDown(Keys.Right))
                 horizontalMovement += 1;
 
-            // Set the velocity based on the horizontal movement
             playerMovement.Velocity = new Vector2(horizontalMovement * playerSpeed, 0);
         }
+        public void Dispose() => Entity.Destroy();
+
     }
 }

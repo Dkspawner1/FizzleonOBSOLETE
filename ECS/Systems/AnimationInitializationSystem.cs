@@ -1,18 +1,12 @@
-﻿using Microsoft.Xna.Framework.Content;
+﻿using Fizzleon.ECS.Components;
 using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
-using System.Diagnostics;
 
-public class AnimationInitializationSystem : EntitySystem
+namespace Fizzleon.ECS.Systems;
+
+public class AnimationInitializationSystem() : EntitySystem(Aspect.All(typeof(AnimationComponent)))
 {
     private ComponentMapper<AnimationComponent> animationMapper;
-    private ContentManager contentManager; 
-
-    public AnimationInitializationSystem(ContentManager contentManager)
-        : base(Aspect.All(typeof(AnimationComponent)))
-    {
-        this.contentManager = contentManager; 
-    }
 
     public override void Initialize(IComponentMapperService mapperService)
     {
@@ -26,12 +20,6 @@ public class AnimationInitializationSystem : EntitySystem
         if (animation != null)
         {
             Trace.WriteLine($"Entity with AnimationComponent added. EntityId: {entityId}");
-
-            if (contentManager != null)
-            {
-                animation.LoadContent(contentManager);
-            }
-          
         }
         else
         {
