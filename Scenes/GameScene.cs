@@ -4,6 +4,7 @@ using Fizzleon.ECS.Systems;
 using Fizzleon.Managers;
 using MonoGame.Extended.Entities;
 using System.Collections.Generic;
+using Fizzleon.Scenes;
 using static Fizzleon.Core.Data.GameState;
 using static Fizzleon.ECS.Components.SceneTransitionComponent;
 
@@ -16,8 +17,7 @@ public class GameScene : IScene
     private Entity sceneEntity;
     public Entity SceneEntity => sceneEntity;
 
-    public SceneTransitionComponent TransitionComponent => sceneTransition;
-    private SceneTransitionComponent sceneTransition;
+    public SceneTransitionComponent TransitionComponent { get; set; }
 
     private KeyboardState kb;
 
@@ -26,20 +26,18 @@ public class GameScene : IScene
 
     private readonly TextureLoaderSystem textureLoaderSystem;
 
-    public TransitionState CurrentTransitionState => TransitionState.None;
-
     private readonly SceneTransitionSystem transitionSystem;
 
-    public GameScene(TextureLoaderSystem textureLoaderSystem, SceneManager sceneManager)
+    public GameScene(TextureLoaderSystem textureLoaderSystem)
     {
         this.textureLoaderSystem = textureLoaderSystem;
         this.textureLoaderSystem = textureLoaderSystem;
 
-        transitionSystem = new SceneTransitionSystem(sceneManager);
+        transitionSystem = new SceneTransitionSystem();
     }
     public void Initialize()
     {
-        sceneTransition = new SceneTransitionComponent(textureLoaderSystem.Load<Texture2D>("textures/btn0"));
+        TransitionComponent = new SceneTransitionComponent(textureLoaderSystem.Load<Texture2D>("textures/btn0"));
 
 
         worldBuilder = new WorldBuilder()
@@ -48,23 +46,20 @@ public class GameScene : IScene
            .AddSystem(new AnimationInitializationSystem())
            .AddSystem(new AnimationUpdateSystem())
            .AddSystem(transitionSystem);
-
+        
         World = worldBuilder.Build();
 
         Players = new List<Player>
         {
-            new Player(World, new Vector2(300, 500), 200f),
-            new Player(World, new Vector2(700, 200), 175f)
+            new(World, new Vector2(300, 500), 200f),
+            new(World, new Vector2(700, 200), 175f),
         };
         Players[0].Entity.Attach(new TransformComponent(new Vector2(100,100)));
         Players[1].Entity.Attach(new TransformComponent(new Vector2(100, 100)));
 
-
-
-
         sceneEntity = World.CreateEntity();
-        sceneEntity.Attach(sceneTransition);
-
+        sceneEntity.Attach(TransitionComponent);
+        
         LoadContent();
     }
 
@@ -93,7 +88,7 @@ public class GameScene : IScene
         Players[0].Update("runRight", "idleRight");
         Players[1].Update("idle-right", "run-right");
         World.Update(gameTime);
-        sceneTransition.Update();
+        TransitionComponent.Update();
 
     }
 

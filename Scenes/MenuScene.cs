@@ -6,62 +6,62 @@ using MonoGame.Extended.Entities;
 using System;
 using System.Collections.Generic;
 using static Fizzleon.Core.Data;
-using static Fizzleon.ECS.Components.SceneTransitionComponent;
 
 namespace Fizzleon.Scenes
 {
     
     public class MenuScene : IScene
     {
-        
-        
-        public TransitionState CurrentTransitionState => TransitionState.None;
-        public World World { get; set; }
         public GameState.GameStates SceneId => GameState.GameStates.MENU;
+        public World World { get; set; }
         public bool IsSceneChangeRequested { get; set; }
+
 
         private Entity sceneEntity;
         public Entity SceneEntity => sceneEntity;
 
         private static readonly List<ButtonEntity> buttonEntities = new();
 
-
         private readonly TextureLoaderSystem textureLoaderSystem;
 
 
-        private readonly SceneTransitionComponent sceneTransition;
-        public SceneTransitionComponent TransitionComponent => sceneTransition;
+        public SceneTransitionComponent TransitionComponent { get; set; }
+
+
         private readonly SceneTransitionSystem transitionSystem;
 
-        private bool isWorldDisposed = false;
+        private bool isWorldDisposed;
 
-        public MenuScene(TextureLoaderSystem textureLoaderSystem, SceneManager sceneManager)
+        public MenuScene(TextureLoaderSystem textureLoaderSystem)
         {
             this.textureLoaderSystem = textureLoaderSystem;
-          
-            sceneTransition = new SceneTransitionComponent(Data.ContentInitializationSystem.Load<Texture2D>("textures/btn0"));
-
-            transitionSystem = new SceneTransitionSystem(sceneManager);
+            TransitionComponent = new SceneTransitionComponent(Data.ContentInitializationSystem.Load<Texture2D>("textures/btn0"));
+            transitionSystem = new SceneTransitionSystem();
         }
+
 
         public void Initialize()
         {
             if (World == null || isWorldDisposed)
             {
                 var worldBuilder = new WorldBuilder()
-                    .AddSystem(new RenderSystem())
                     .AddSystem(textureLoaderSystem)
+                    .AddSystem(new RenderSystem())
                     .AddSystem(transitionSystem);
 
                 World = worldBuilder.Build();
+               
                 sceneEntity = World.CreateEntity();
-                sceneEntity.Attach(sceneTransition);
+                sceneEntity.Attach(TransitionComponent);
 
                 buttonEntities.Clear();
 
-                buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.Load<Texture2D>("textures/btn0"), new Rectangle(100, 100, 200, 50)));
-                buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.Load<Texture2D>("textures/btn1"), new Rectangle(100, 200, 200, 50)));
-                buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.Load<Texture2D>("textures/btn2"), new Rectangle(100, 300, 200, 50)));
+                if (buttonEntities.Count == 0)
+                {
+                    buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.Load<Texture2D>("textures/btn0"), new Rectangle(100, 100, 200, 50)));
+                    buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.Load<Texture2D>("textures/btn1"), new Rectangle(100, 200, 200, 50)));
+                    buttonEntities.Add(new ButtonEntity(sceneEntity, textureLoaderSystem.Load<Texture2D>("textures/btn2"), new Rectangle(100, 300, 200, 50)));
+                }
 
                 LoadContent();
 
@@ -118,7 +118,6 @@ namespace Fizzleon.Scenes
 
         public void Update(GameTime gameTime)
         {
-            Trace.WriteLine($"Update: CurrentTransitionState = {TransitionComponent.CurrentTransitionState}");
 
             oldMouse = mouse;
             mouse = Mouse.GetState();
@@ -175,13 +174,11 @@ namespace Fizzleon.Scenes
 
         public void TransitionIn()
         {
-            // Use the generic TransitionIn method
             TransitionComponent.TransitionIn();
         }
 
         public void TransitionOut()
         {
-            // Use the generic TransitionOut method
             TransitionComponent.TransitionOut();
         }
     }

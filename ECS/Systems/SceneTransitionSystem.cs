@@ -1,18 +1,14 @@
 ﻿using Fizzleon.ECS.Components;
-using Fizzleon.Managers;
-using MonoGame.Extended.Entities.Systems;
 using MonoGame.Extended.Entities;
-using System;
+using MonoGame.Extended.Entities.Systems;
 
-public class SceneTransitionSystem : EntityUpdateSystem
+namespace Fizzleon.ECS.Systems;
+
+public class SceneTransitionSystem()
+    : EntityUpdateSystem(Aspect.All(typeof(SceneTransitionComponent)))
 {
     private ComponentMapper<SceneTransitionComponent> transitionMapper;
-    private SceneManager sceneManager;
 
-    public SceneTransitionSystem(SceneManager sceneManager) : base(Aspect.All(typeof(SceneTransitionComponent)))
-    {
-        this.sceneManager = sceneManager ?? throw new ArgumentNullException(nameof(sceneManager));
-    }
 
     public override void Initialize(IComponentMapperService mapperService)
     {
@@ -45,11 +41,7 @@ public class SceneTransitionSystem : EntityUpdateSystem
         DrawTransition();
 
         Data.SpriteBatch.End();
-
-        if (sceneManager != null)
-        {
-
-        }
+        
     }
 
     public void DrawTransition()

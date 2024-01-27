@@ -10,7 +10,6 @@ using MonoGame.Extended.Sprites;
 public class Game1 : Game
 {
     private readonly SceneManager sceneManager;
-    private NetworkConnection networkConnection;
     public Game1()
     {
         Data.GameTime = new GameTime();
@@ -21,10 +20,9 @@ public class Game1 : Game
         
         Data.ContentInitializationSystem = ContentInitializationSystem.Create(Content);
 
-        sceneManager = new SceneManager(new TextureLoaderSystem(Content), Content);
+        sceneManager = new SceneManager(new TextureLoaderSystem(Content));
 
 
-        networkConnection = new NetworkConnection();
     }
 
     protected override void Initialize()
@@ -38,14 +36,6 @@ public class Game1 : Game
 
         base.Initialize();
 
-        if (networkConnection.Start())
-        {
-            // Handle successful network connection start
-        }
-        else
-        {
-            // Handle failed network connection start
-        }
     }
 
     protected override void LoadContent()
@@ -65,7 +55,6 @@ public class Game1 : Game
         if (Data.Window.Exit)
             Exit();
 
-        // Update SceneManager
         sceneManager.Update();
 
         base.Update(gameTime);

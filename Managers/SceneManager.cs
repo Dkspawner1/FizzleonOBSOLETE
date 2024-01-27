@@ -4,14 +4,14 @@ using Fizzleon.Scenes;
 using static Fizzleon.Core.Data.GameState;
 using System.Collections.Generic;
 using System;
+using Fizzleon.ECS.Components;
 using Fizzleon.ECS.Systems;
 
 namespace Fizzleon.Managers;
 
-public class SceneManager : List<IScene>
+public class SceneManager(TextureLoaderSystem loaderSystem) : List<IScene>
 {
     public IScene CurrentScene { get; set; }
-    public ContentInitializationSystem ContentInitializationSystem { get; private set; }
 
     public event EventHandler<SceneChangedEventArgs> SceneChanged;
     private SceneChangeListener sceneChangeListener;
@@ -22,37 +22,16 @@ public class SceneManager : List<IScene>
 
     protected Dictionary<GameStates, IScene> scenes;
 
-    private TextureLoaderSystem textureLoaderSystem;
-
-    // Constructor with textureLoaderSystem parameter
-    public SceneManager(TextureLoaderSystem textureLoaderSystem, ContentManager contentManager)
-    {
-        if (textureLoaderSystem == null)
-            throw new ArgumentNullException(nameof(textureLoaderSystem));
-
-        this.textureLoaderSystem = textureLoaderSystem;
-      
-
-    }
-    public void SetTextureLoaderSystem(TextureLoaderSystem textureLoaderSystem)
-    {
-        if (textureLoaderSystem == null)
-            throw new ArgumentNullException(nameof(textureLoaderSystem));
-
-        this.textureLoaderSystem = textureLoaderSystem;
-    }
     public void Initialize()
     {
-        menuScene = new MenuScene(textureLoaderSystem, this);
-        gameScene = new GameScene(textureLoaderSystem, this);
+        menuScene = new MenuScene(loaderSystem);
+        gameScene = new GameScene(loaderSystem);
 
-        // Add other scenes as needed
 
         scenes = new Dictionary<GameStates, IScene>
     {
         { GameStates.MENU, menuScene },
         { GameStates.GAME, gameScene }
-        // Add other scenes as needed
     };
 
         foreach (var scene in scenes.Values)
@@ -63,6 +42,8 @@ public class SceneManager : List<IScene>
 
         CurrentScene = menuScene;
         sceneChangeListener = new SceneChangeListener(this);
+
+        
     }
     public void LoadContent()
     {
@@ -72,47 +53,49 @@ public class SceneManager : List<IScene>
 
     public void Update()
     {
-        if (CurrentScene == null)
-        {
-            // Handle the case where CurrentScene is null, possibly log an error
-            return;
-        }
 
         CurrentScene.TransitionComponent.Update();
         CurrentScene.Update(Data.GameTime);
 
-        if (CurrentScene.IsSceneChangeRequested)
-        {
-            IScene targetScene = (CurrentScene == gameScene) ? menuScene : gameScene;
-            RequestSceneChange(CurrentScene, targetScene);
-            CurrentScene.IsSceneChangeRequested = false;
-        }
+        if (!CurrentScene.IsSceneChangeRequested) return;
+
+        IScene targetScene = (CurrentScene == gameScene) ? menuScene : gameScene;
+        RequestSceneChange(CurrentScene, targetScene);
+        
+        Trace.WriteLine($"Transition state after request: {targetScene.TransitionComponent.CurrentTransitionState}");
+
     }
 
     public void Draw()
     {
-        // Draw the current scene
         CurrentScene.Draw();
     }
 
-    // Preps the scene to change and disposes the assets
     private void RequestSceneChange(IScene currentScene, IScene targetScene)
     {
         Trace.WriteLine($"Requesting scene change from {currentScene.SceneId} to {targetScene.SceneId}");
 
+        // Transition out the current scene
         currentScene.TransitionOut();
         Trace.WriteLine($"Transitioning out of {currentScene.SceneId}");
 
+        // Dispose of the current scene assets
         currentScene.Dispose();
         Trace.WriteLine($"Disposing of {currentScene.SceneId} assets");
 
+        // Set the target scene to transition in
+        targetScene.TransitionComponent.CurrentTransitionState = SceneTransitionComponent.TransitionState.TransitionIn;
+
+        // Initialize and load content for the target scene
         targetScene.Initialize();
         targetScene.LoadContent();
         Trace.WriteLine($"Initializing and loading content for {targetScene.SceneId}");
 
+        // Transition into the target scene
         targetScene.TransitionIn();
         Trace.WriteLine($"Transitioning into {targetScene.SceneId}");
 
+        // Perform the actual scene change
         ChangeScene(targetScene);
     }
 
@@ -121,16 +104,16 @@ public class SceneManager : List<IScene>
         string sceneChangeMessage = $"Changing to ({newScene.SceneId}): {newScene} test";
         SceneChanged?.Invoke(this, new SceneChangedEventArgs(sceneChangeMessage, CurrentScene?.SceneId.ToString(), newScene.SceneId.ToString()));
 
+        // Dispose of the previous scene and transition out
         IScene previousScene = CurrentScene;
         CurrentScene = null;
-
         previousScene.Dispose();
         previousScene.TransitionOut();
 
+        // Initialize, load content, and transition in the new scene
         newScene.Initialize();
         newScene.LoadContent();
         newScene.TransitionIn();
-
         CurrentScene = newScene;
 
         string sceneChangedMessage = $"Changed to ({newScene.SceneId}): {newScene}";
