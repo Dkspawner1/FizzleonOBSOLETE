@@ -5,14 +5,13 @@ using Fizzleon.Managers;
 using MonoGame.Extended.Entities;
 using System.Collections.Generic;
 using static Fizzleon.Core.Data.GameState;
-using static Fizzleon.ECS.Components.SceneTransitionComponent;
+using static SceneTransitionComponent;
 
 public class GameScene : IScene
 {
     public GameStates SceneId => GameStates.GAME;
     public World World { get; set; }
     public bool IsSceneChangeRequested { get; set; }
-    public TransitionState CurrentTransitionState => TransitionState.None;
 
     private Entity sceneEntity;
     public Entity SceneEntity => sceneEntity;
@@ -24,28 +23,26 @@ public class GameScene : IScene
 
     private readonly TextureLoaderSystem textureLoaderSystem;
     private ContentInitializationSystem contentInitializationSystem;
-    public SceneTransitionComponent TransitionComponent => transitionComponent;
-    private readonly SceneTransitionComponent transitionComponent;
-    private TransitionSystem transitionSystem;
 
-    public GameScene(TextureLoaderSystem textureLoaderSystem, SceneManager sceneManager)
+    public TransitionState CurrentTransitionState => TransitionState.None;
+    public SceneTransitionComponent TransitionComponent => transitionComponent;
+
+    private SceneTransitionComponent transitionComponent;
+
+    private SceneTransitionSystem transitionSystem;
+
+    public GameScene(TextureLoaderSystem textureLoaderSystem, SceneManager sceneManager, ContentInitializationSystem contentInitializationSystem)
     {
         this.textureLoaderSystem = textureLoaderSystem;
+        this.contentInitializationSystem = contentInitializationSystem;
+        this.textureLoaderSystem = textureLoaderSystem;
 
-        contentInitializationSystem = ContentInitializationSystem.Create(Data.Content);
-
-        // Initialize the transition component
-        transitionComponent = new SceneTransitionComponent(textureLoaderSystem);
-
-        // Pass the SceneManager instance to the TransitionSystem
-        transitionSystem = new TransitionSystem(sceneManager);
+        transitionSystem = new SceneTransitionSystem(sceneManager);
     }
-
     public void Initialize()
     {
-        var contentInitializationSystem = ContentInitializationSystem.Create(Data.Content);
-        var textureLoaderSystem = TextureLoaderSystem.Create(contentInitializationSystem);
-        var sceneTransitionComponent = new SceneTransitionComponent(textureLoaderSystem);
+        transitionComponent = new SceneTransitionComponent(Data.Content.Load<Texture2D>("textures/btn0"));
+
 
         worldBuilder = new WorldBuilder()
            .AddSystem(contentInitializationSystem)
@@ -73,18 +70,20 @@ public class GameScene : IScene
 
     public void LoadContent()
     {
+
         players[0].LoadContent(textureLoaderSystem, "Textures/Warrior_Sheet-Effect", "Textures/Warrior_Sheet-Effect.sf");
         players[1].LoadContent(textureLoaderSystem, "Textures/Mino", "Textures/Mino.sf");
 
+        var playerTextures = players
+            .Where(player => player.entity != null)
+            .Select(player => player.entity.Get<SpriteComponent>()?.Texture)
+            .Where(texture => texture != null);
+
         textureLoaderSystem.LoadEntities(
-            players
-                .Where(player => player.entity != null)
-                .Select(player => player.entity),
-            players
-                .Where(player => player.entity != null && player.entity.Has<SpriteComponent>())
-                .Select(player => player.entity.Get<SpriteComponent>()?.Texture?.Name)
-                .Where(textureName => textureName != null)
-        );
+    players
+        .Where(player => player.entity != null)
+        .Select(player => player.entity),
+        playerTextures.Select(texture => texture.Name));
     }
 
     public void Update(GameTime gameTime)
@@ -93,6 +92,8 @@ public class GameScene : IScene
         players[0].Update("runRight", "idleRight");
         players[1].Update("idle-right", "run-right");
         World.Update(gameTime);
+        transitionComponent.Update();
+
     }
 
     private void HandleInput()

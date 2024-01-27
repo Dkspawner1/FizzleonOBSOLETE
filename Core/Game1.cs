@@ -10,22 +10,22 @@ public class Game1 : Game
 
     public Game1()
     {
+        Data.GameTime = new GameTime();
+        Data.Content = Content;
         Data.Graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         Window.Title = Data.Window.Title;
         IsMouseVisible = true;
 
-        var contentLoader = new GameContentLoader(Services, "Content");
+        // Create ContentInitializationSystem
         var contentInitializationSystem = ContentInitializationSystem.Create(Content);
 
-        var textureLoaderSystem = TextureLoaderSystem.Create(contentInitializationSystem);
+        // Create SceneManager with required parameters
+        var textureLoaderSystem = TextureLoaderSystem.Create( contentInitializationSystem);  
 
-        sceneManager = new SceneManager(textureLoaderSystem);
-
-        Data.Content = Content;
+        sceneManager = new SceneManager(textureLoaderSystem, Content);
 
         networkConnection = new NetworkConnection();
-        //MouseListener = new MouseListener();
     }
 
     protected override void Initialize()
@@ -34,7 +34,7 @@ public class Game1 : Game
         Data.Graphics.PreferredBackBufferHeight = Data.Window.Height;
         Data.Graphics.ApplyChanges();
 
-        // Initialize scene manager before base.Initialize()
+
         sceneManager.Initialize();
 
         base.Initialize();
@@ -53,7 +53,7 @@ public class Game1 : Game
     {
         Data.SpriteBatch = new SpriteBatch(GraphicsDevice);
 
-        // Load content after initializing scene manager
+        // Load content for the SceneManager
         sceneManager.LoadContent();
 
         base.LoadContent();
@@ -61,14 +61,12 @@ public class Game1 : Game
 
     protected override void Update(GameTime gameTime)
     {
-        // Set Data.GameTime at the beginning of the Update method
         Data.GameTime = gameTime;
-
-        //MouseListener.Update(gameTime);
 
         if (Data.Window.Exit)
             Exit();
 
+        // Update SceneManager
         sceneManager.Update();
 
         base.Update(gameTime);
@@ -77,6 +75,8 @@ public class Game1 : Game
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.DarkBlue * 0.2f);
+
+        // Draw SceneManager
         sceneManager.Draw();
 
         base.Draw(gameTime);
@@ -84,6 +84,7 @@ public class Game1 : Game
 
     protected override void UnloadContent()
     {
+        // Dispose of scenes in the SceneManager
         sceneManager.ForEach(scene => scene.Dispose());
 
         base.UnloadContent();

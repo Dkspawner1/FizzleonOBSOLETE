@@ -2,7 +2,7 @@
 using MonoGame.Extended.Entities;
 using static Fizzleon.Core.Data;
 using System;
-using static Fizzleon.ECS.Components.SceneTransitionComponent;
+using static SceneTransitionComponent;
 
 public interface IScene : IDisposable
 {
