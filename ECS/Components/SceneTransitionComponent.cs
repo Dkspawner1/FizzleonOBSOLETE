@@ -1,6 +1,8 @@
 ﻿using System;
 
-public class SceneTransitionComponent
+namespace Fizzleon.ECS.Components;
+
+public class SceneTransitionComponent(Texture2D fadeTexture)
 {
     public enum TransitionState
     {
@@ -9,18 +11,11 @@ public class SceneTransitionComponent
         TransitionOut
     }
 
-    public TransitionState CurrentTransitionState { get; set; }
-    public float TransitionAlpha { get; private set; }
-    public Texture2D FadeTexture { get; }
+    public TransitionState CurrentTransitionState { get; set; } = TransitionState.None;
+    public float TransitionAlpha { get; private set; } = 0f;
+    public Texture2D FadeTexture { get; } = fadeTexture ?? throw new ArgumentNullException(nameof(fadeTexture));
 
     private const float transitionSpeed = 0.1f;
-
-    public SceneTransitionComponent(Texture2D fadeTexture)
-    {
-        FadeTexture = fadeTexture ?? throw new ArgumentNullException(nameof(fadeTexture));
-        CurrentTransitionState = TransitionState.None;
-        TransitionAlpha = 0f;
-    }
 
     public void TransitionIn()
     {

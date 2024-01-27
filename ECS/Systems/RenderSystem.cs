@@ -4,7 +4,7 @@ using MonoGame.Extended.Entities.Systems;
 
 namespace Fizzleon.ECS.Systems
 {
-    internal class RenderSystem : EntityDrawSystem
+    public class RenderSystem : EntityDrawSystem
     {
         private ComponentMapper<TransformComponent> transformMapper;
         private ComponentMapper<SpriteComponent> spriteMapper;
@@ -36,7 +36,7 @@ namespace Fizzleon.ECS.Systems
                 //sprite.Draw(Data.Game.SpriteBatch);
                 //animation.Draw(Data.Game.SpriteBatch);
 
-                (animation ?? sprite)?.Draw(Data.SpriteBatch);
+                (animation ?? sprite)?.Draw();
 
             }
 

@@ -1,29 +1,28 @@
-﻿using Fizzleon.ECS.Systems;
+﻿using System.Runtime.InteropServices;
+using Fizzleon.ECS.Systems;
 using Fizzleon.Managers;
 using Fizzleon.Network;
+using MonoGame.Extended.Content;
 using MonoGame.Extended.Input.InputListeners;
+using MonoGame.Extended.Serialization;
+using MonoGame.Extended.Sprites;
 
 public class Game1 : Game
 {
     private readonly SceneManager sceneManager;
     private NetworkConnection networkConnection;
-
     public Game1()
     {
         Data.GameTime = new GameTime();
-        Data.Content = Content;
         Data.Graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         Window.Title = Data.Window.Title;
         IsMouseVisible = true;
+        
+        Data.ContentInitializationSystem = ContentInitializationSystem.Create(Content);
 
-        // Create ContentInitializationSystem
-        var contentInitializationSystem = ContentInitializationSystem.Create(Content);
+        sceneManager = new SceneManager(new TextureLoaderSystem(Content), Content);
 
-        // Create SceneManager with required parameters
-        var textureLoaderSystem = TextureLoaderSystem.Create( contentInitializationSystem);  
-
-        sceneManager = new SceneManager(textureLoaderSystem, Content);
 
         networkConnection = new NetworkConnection();
     }

@@ -31,7 +31,7 @@ public class SceneManager : List<IScene>
             throw new ArgumentNullException(nameof(textureLoaderSystem));
 
         this.textureLoaderSystem = textureLoaderSystem;
-        this.ContentInitializationSystem = ContentInitializationSystem.Create(contentManager);
+      
 
     }
     public void SetTextureLoaderSystem(TextureLoaderSystem textureLoaderSystem)
@@ -43,8 +43,8 @@ public class SceneManager : List<IScene>
     }
     public void Initialize()
     {
-        menuScene = new MenuScene(textureLoaderSystem, this, ContentInitializationSystem);
-        gameScene = new GameScene(textureLoaderSystem, this, ContentInitializationSystem);
+        menuScene = new MenuScene(textureLoaderSystem, this);
+        gameScene = new GameScene(textureLoaderSystem, this);
 
         // Add other scenes as needed
 
