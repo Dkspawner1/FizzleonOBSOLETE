@@ -44,7 +44,7 @@ public class SceneTransitionComponent(Texture2D fadeTexture)
             case TransitionState.TransitionIn:
                 TransitionIn();
                 break;
-
+                
             case TransitionState.TransitionOut:
                 TransitionOut();
                 break;

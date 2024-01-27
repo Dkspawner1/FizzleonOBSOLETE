@@ -12,15 +12,17 @@ namespace Fizzleon.ECS.Entities
 {
     public class Player : IDisposable
     {
+        private readonly Vector2 spawn;
         public readonly Entity Entity;
 
         public Player(World world, Vector2 spawn, float speed)
         {
+            this.spawn = spawn;
             Entity = world.CreateEntity();
-            Entity.Attach(new TransformComponent(spawn));
+            
             Entity.Attach(new MovementComponent());
             Entity.Attach(new PlayerComponent(speed));
-
+            
         }
 
 
@@ -29,9 +31,11 @@ namespace Fizzleon.ECS.Entities
         {
             var animation = new AnimationComponent(textureLoaderSystem,pathToXnb, pathToSf);
             var animationSprite = new SpriteComponent(animation.Texture);
-            animation.Transform = new TransformComponent(new Vector2(100, 100));
+            animation.Transform = new TransformComponent(spawn);
+
             Entity.Attach(animationSprite);
             Entity.Attach(animation);
+            Entity.Attach(animation.Transform);
 
         }
 
