@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using Fizzleon.ECS.Components;
 using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
@@ -11,7 +10,6 @@ namespace Fizzleon.ECS.Systems;
 
 public class TextureLoaderSystem(ContentManager contentManager) : ContentInitializationSystem(contentManager), ISystem
 {
-    private readonly List<Entity> menuEntities = [];
     private readonly Dictionary<string, Texture2D> loadedTextures = new();
 
     public void LoadEntities(IEnumerable<Entity> entities, IEnumerable<string> paths)
@@ -29,7 +27,7 @@ public class TextureLoaderSystem(ContentManager contentManager) : ContentInitial
 
     public List<Rectangle> LoadMenuItems(List<Entity> menuEntities)
     {
-        List<Rectangle> buttonsRect = new ();
+        List<Rectangle> buttonsRect = new();
 
         foreach (var entity in menuEntities)
         {
@@ -40,36 +38,45 @@ public class TextureLoaderSystem(ContentManager contentManager) : ContentInitial
         return buttonsRect;
     }
 
-    public void ReloadTexture(Entity entity, string path)
+    public void ReloadTextures(IEnumerable<Entity> entities)
     {
-        if (entity != null)
+        foreach (var entity in entities)
         {
-            // Check if the entity already has a SpriteComponent
-            if (!entity.Has<SpriteComponent>())
+            ReloadEntityTextures(entity);
+        }
+    }
+
+    private void ReloadEntityTextures(Entity entity)
+    {
+        if (entity != null && entity.Has<SpriteComponent>())
+        {
+            var spriteComponent = entity.Get<SpriteComponent>();
+            if (spriteComponent.Texture != null)
             {
-                // If not, create and attach a new SpriteComponent
-                var spriteComponent = new SpriteComponent(Load<Texture2D>(path));
-                entity.Attach(spriteComponent);
+                ReloadTexture(entity, spriteComponent.Texture.Name);
+                spriteComponent.Texture = loadedTextures[spriteComponent.Texture.Name];
             }
             else
             {
-                // If it already has a SpriteComponent, retrieve it
-                var spriteComponent = entity.Get<SpriteComponent>();
-
-                // Load the texture and set it for the SpriteComponent
-                var loadedTexture = Load<Texture2D>(path);
-                loadedTextures[path] = loadedTexture;
-
-                // Make sure the SpriteComponent's Texture property is updated
-                spriteComponent.Texture = loadedTexture;
+                // Handle the case where the SpriteComponent's texture is null
+                throw new InvalidOperationException("SpriteComponent's texture is null.");
             }
         }
         else
         {
-            // Handle the case where entity is null
-            throw new InvalidOperationException("Entity is null.");
+            // Handle the case where the entity doesn't have a SpriteComponent
+            throw new InvalidOperationException("Entity doesn't have a SpriteComponent.");
         }
     }
+
+    public void ReloadTexture(Entity entity, string path)
+    {
+        // Load the texture and set it for the SpriteComponent
+        var loadedTexture = Load<Texture2D>(path);
+        loadedTextures[path] = loadedTexture;
+    }
+
+
 
 
     private void LoadMenuEntity(Entity menuEntity)
@@ -150,14 +157,16 @@ public class TextureLoaderSystem(ContentManager contentManager) : ContentInitial
     {
 
     }
+
     public new void Dispose()
     {
+        base.Dispose();
+
         foreach (var loadedTexture in loadedTextures.Values)
         {
             loadedTexture.Dispose();
         }
 
         loadedTextures.Clear();
-        Content.Unload();
     }
 }

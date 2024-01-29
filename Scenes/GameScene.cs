@@ -1,130 +1,128 @@
-﻿using Fizzleon.ECS.Components;
+﻿using System.Collections.Generic;
+using Fizzleon.ECS.Components;
 using Fizzleon.ECS.Entities;
 using Fizzleon.ECS.Systems;
 using Fizzleon.Managers;
+using Microsoft.Xna.Framework;
 using MonoGame.Extended.Entities;
-using System.Collections.Generic;
-using Fizzleon.Scenes;
+using MonoGame.Extended.Entities.Systems;
 using static Fizzleon.Core.Data.GameState;
-using static Fizzleon.ECS.Components.SceneTransitionComponent;
 
-public class GameScene : IScene
+namespace Fizzleon.Scenes
 {
-    public GameStates SceneId => GameStates.GAME;
-    public World World { get; set; }
-    public bool IsSceneChangeRequested { get; set; }
-
-    private Entity sceneEntity;
-    public Entity SceneEntity => sceneEntity;
-
-    public SceneTransitionComponent TransitionComponent { get; set; }
-
-    private KeyboardState kb;
-
-    private WorldBuilder worldBuilder;
-    private List<Player> Players { get; set; }
-
-    private readonly TextureLoaderSystem textureLoaderSystem;
-
-    private readonly SceneTransitionSystem transitionSystem;
-
-    public GameScene(TextureLoaderSystem textureLoaderSystem)
+    public class GameScene(TextureLoaderSystem textureLoaderSystem) : IScene
     {
-        this.textureLoaderSystem = textureLoaderSystem;
-        this.textureLoaderSystem = textureLoaderSystem;
+        public GameStates SceneId => GameStates.GAME;
+        public World World { get; set; }
 
-        transitionSystem = new SceneTransitionSystem();
-    }
-    public void Initialize()
-    {
-        TransitionComponent = new SceneTransitionComponent(textureLoaderSystem.Load<Texture2D>("textures/btn0"));
+        public SceneTransitionComponent TransitionComponent { get; set; }
+
+        public bool IsSceneChangeRequested { get; set; }
+
+        private List<Player> Players { get; set; }
+        private KeyboardState kb;
+
+        private readonly List<ISystem> systemsList = new();
+        public bool D1KeyPressed { get; set; }
+        public bool IsInitialized { get; set; }
+
+        //TransitionComponent.LoadContent(textureLoaderSystem.Load<Texture2D>("Textures/btn0"));
 
 
-        worldBuilder = new WorldBuilder()
-           .AddSystem(textureLoaderSystem)
-           .AddSystem(new RenderSystem())
-           .AddSystem(new AnimationInitializationSystem())
-           .AddSystem(new AnimationUpdateSystem())
-           .AddSystem(transitionSystem);
-        
-        World = worldBuilder.Build();
-
-        Players = new List<Player>
+        public void AddSystem(ISystem system)
         {
-            new(World, new Vector2(300, 500), 200f),
-            new(World, new Vector2(700, 200), 175f),
-        };
-        Players[0].Entity.Attach(new TransformComponent(new Vector2(100,100)));
-        Players[1].Entity.Attach(new TransformComponent(new Vector2(100, 100)));
 
-        sceneEntity = World.CreateEntity();
-        sceneEntity.Attach(TransitionComponent);
-        
-        LoadContent();
-    }
-
-
-    public void LoadContent()
-    {
-
-        Players[0].LoadContent(textureLoaderSystem, "Textures/Warrior_Sheet-Effect", "Textures/Warrior_Sheet-Effect.sf");
-        Players[1].LoadContent(textureLoaderSystem, "Textures/Mino", "Textures/Mino.sf");
-
-        var playerTextures = Players
-            .Where(player => player.Entity != null)
-            .Select(player => player.Entity.Get<SpriteComponent>()?.Texture)
-            .Where(texture => texture != null);
-
-        textureLoaderSystem.LoadEntities(
-    Players
-        .Where(player => player.Entity != null)
-        .Select(player => player.Entity),
-        playerTextures.Select(texture => texture.Name));
-    }
-
-    public void Update(GameTime gameTime)
-    {
-        HandleInput();
-        Players[0].Update("runRight", "idleRight");
-        Players[1].Update("idle-right", "run-right");
-        World.Update(gameTime);
-        TransitionComponent.Update();
-
-    }
-
-    private void HandleInput()
-    {
-        kb = Keyboard.GetState();
-        if (kb.IsKeyDown(Keys.D1))
-            IsSceneChangeRequested = true;
-
-    }
-
-    public void Draw()
-    {
-        World.Draw(Data.GameTime);
-    }
-
-    public void Dispose()
-    {
-        foreach (var player in Players)
+            systemsList.Add(system);
+        }
+        public void Initialize()
         {
-            player.Dispose();
+            WorldBuilder worldBuilder = new WorldBuilder();
+            foreach (var system in systemsList)
+            {
+                worldBuilder.AddSystem(system);
+            }
+            World = worldBuilder.Build();
+
+            Players = new List<Player>
+            {
+                new Player(World, new Vector2(300, 500), 200f),
+                new Player(World, new Vector2(700, 200), 175f),
+            };
+
+            foreach (var player in Players)
+            {
+                player.Entity.Attach(new TransformComponent(new Vector2(100, 100)));
+                player.LoadContent(textureLoaderSystem, "Textures/Warrior_Sheet-Effect", "Textures/Warrior_Sheet-Effect.sf");
+            }
+
+            IsInitialized = true;
+
+        }
+        public void LoadContent()
+        {
+            var playerTextures = Players
+                .Select(player => player.Entity?.Get<SpriteComponent>()?.Texture)
+                .Where(texture => texture != null);
+
+            // Check if the system is available
+            if (systemsList.FirstOrDefault(s => s is TextureLoaderSystem) is TextureLoaderSystem)
+            {
+                
+                textureLoaderSystem.LoadEntities(Players.Select(player => player.Entity), playerTextures.Select(texture => texture.Name));
+            }
         }
 
-        Players.Clear();
+        public void Update(GameTime gameTime)
+        {
+            HandleInput();
 
+            foreach (var player in Players)
+            {
+                player.Update("runRight", "idleRight");
+            }
 
-        World.Dispose();
-    }
+            World.Update(gameTime);
+        }
 
-    public void TransitionIn()
-    {
-        TransitionComponent.TransitionIn();
-    }
+        private void HandleInput()
+        {
+            kb = Keyboard.GetState();
 
-    public void TransitionOut()
-    {
-        TransitionComponent.TransitionOut();
+            // Check if 'D1' key is pressed and cooldown has elapsed
+            if (kb.IsKeyDown(Keys.D1) && !IsSceneChangeRequested)
+            {
+                IsSceneChangeRequested = true;
+                Trace.WriteLine("Scene change requested!");
+            }
+        }
+
+        public void Draw()
+        {
+            World.Draw(Data.GameTime);
+            TransitionComponent?.DrawTransition(Data.SpriteBatch);
+        }
+
+        public void Dispose()
+        {
+            foreach (var player in Players)
+            {
+                player.Dispose();
+            }
+
+            Players.Clear();
+            World.Dispose();
+        }
+
+        public void TransitionIn()
+        {
+            Initialize();
+            TransitionComponent.TransitionIn();
+
+        }
+
+        public void TransitionOut()
+        {
+            TransitionComponent.TransitionOut(this);
+        }
     }
 }

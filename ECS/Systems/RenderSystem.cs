@@ -4,16 +4,11 @@ using MonoGame.Extended.Entities.Systems;
 
 namespace Fizzleon.ECS.Systems
 {
-    public class RenderSystem : EntityDrawSystem
+    public class RenderSystem() : EntityDrawSystem(Aspect.All(typeof(TransformComponent)))
     {
         private ComponentMapper<TransformComponent> transformMapper;
         private ComponentMapper<SpriteComponent> spriteMapper;
         private ComponentMapper<AnimationComponent> animationMapper;
-
-        public RenderSystem()
-            : base(Aspect.All(typeof(TransformComponent)))
-        {
-        }
 
         public override void Initialize(IComponentMapperService mapperService)
         {
@@ -26,18 +21,30 @@ namespace Fizzleon.ECS.Systems
         {
             Data.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, blendState: BlendState.AlphaBlend);
 
-            foreach (var entity in ActiveEntities)
+            foreach (var entityId in ActiveEntities)
             {
+                // Get the entity using the entityId
+                var entity = GetEntity(entityId);
+
                 var transform = transformMapper.Get(entity);
                 var sprite = spriteMapper.Get(entity);
                 var animation = animationMapper.Get(entity);
 
+                //sprite.Transform = transform;
 
-                //sprite.Draw(Data.Game.SpriteBatch);
-                //animation.Draw(Data.Game.SpriteBatch);
+                // Ensure both transform and sprite components are present
+                if (transform != null && sprite != null)
+                {
+                    var position = transform.Position;
+                    var rotation = transform.Rotation;
+                    var scale = transform.Scale;
 
-                (animation ?? sprite)?.Draw();
+                    // Draw static sprite
+                    sprite.Draw();
 
+                    // Draw animated sprite
+                    animation?.Draw(); 
+                }
             }
 
             Data.SpriteBatch.End();

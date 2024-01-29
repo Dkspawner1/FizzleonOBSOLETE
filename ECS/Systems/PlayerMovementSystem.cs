@@ -4,16 +4,12 @@ using MonoGame.Extended.Entities.Systems;
 
 namespace Fizzleon.ECS.Systems;
 
-public class PlayerMovementSystem : EntityUpdateSystem
+public class PlayerMovementSystem()
+    : EntityUpdateSystem(Aspect.All(typeof(TransformComponent), typeof(PlayerComponent)))
 {
     private ComponentMapper<TransformComponent> transformMapper;
     private ComponentMapper<PlayerComponent> playerMapper;
 
-    // Represents a system responsible for handling player movement.
-    public PlayerMovementSystem() : base(Aspect.All(typeof(TransformComponent), typeof(PlayerComponent)))
-    {
-
-    }
     public override void Initialize(IComponentMapperService mapperService)
     {
         transformMapper = mapperService.GetMapper<TransformComponent>();

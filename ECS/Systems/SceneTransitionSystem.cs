@@ -1,55 +1,49 @@
 ﻿using Fizzleon.ECS.Components;
+using Fizzleon.Scenes;
 using MonoGame.Extended.Entities;
 using MonoGame.Extended.Entities.Systems;
 
-namespace Fizzleon.ECS.Systems;
-
-public class SceneTransitionSystem()
-    : EntityUpdateSystem(Aspect.All(typeof(SceneTransitionComponent)))
+namespace Fizzleon.ECS.Systems
 {
-    private ComponentMapper<SceneTransitionComponent> transitionMapper;
-
-
-    public override void Initialize(IComponentMapperService mapperService)
+    public class SceneTransitionSystem() : EntityUpdateSystem(Aspect.All(typeof(ITransitionable)))
     {
-        transitionMapper = mapperService.GetMapper<SceneTransitionComponent>();
-    }
+        private ComponentMapper<SceneTransitionComponent> transitionMapper;
 
-    public override void Update(GameTime gameTime)
-    {
-        foreach (var entity in ActiveEntities)
+        public override void Initialize(IComponentMapperService mapperService)
         {
-            var transitionComponent = transitionMapper.Get(entity);
+            transitionMapper = mapperService.GetMapper<SceneTransitionComponent>();
+        }
 
-            switch (transitionComponent.CurrentTransitionState)
+        public override void Update(GameTime gameTime)
+        {
+            foreach (var entity in ActiveEntities)
             {
-                case SceneTransitionComponent.TransitionState.TransitionIn:
-                    transitionComponent.TransitionIn();
-                    break;
+                var transitionComponent = transitionMapper.Get(entity);
 
-                case SceneTransitionComponent.TransitionState.TransitionOut:
-                    transitionComponent.TransitionOut();
-                    break;
+                // Update the transition component based on its current state
+                switch (transitionComponent.CurrentTransitionState)
+                {
+                    case SceneTransitionComponent.TransitionState.TransitionIn:
+                        transitionComponent.TransitionIn();
+                        break;
 
-                default:
-                    break;
+                    case SceneTransitionComponent.TransitionState.TransitionOut:
+                        // Pass the current scene to the TransitionOut method
+                        transitionComponent.TransitionOut(Data.CurrentScene);
+                        break;
+
+                    default:
+                        break;
+                }
+
+                // Draw the active transition for each entity
+                Data.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+                transitionComponent?.DrawTransition(Data.SpriteBatch);
+                Data.SpriteBatch.End();
             }
         }
 
-        Data.SpriteBatch.Begin();
 
-        DrawTransition();
-
-        Data.SpriteBatch.End();
-        
-    }
-
-    public void DrawTransition()
-    {
-        foreach (var entity in ActiveEntities)
-        {
-            var transitionComponent = transitionMapper.Get(entity);
-            transitionComponent.Draw(Data.SpriteBatch);
-        }
+       
     }
 }

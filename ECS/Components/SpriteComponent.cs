@@ -7,7 +7,8 @@ public class SpriteComponent(Texture2D texture)
 
     public virtual void Draw()
     {
-        if (Data.SpriteBatch is { IsDisposed: false })
+        if (Data.SpriteBatch is { IsDisposed: false } && Transform != null)
+        {
             Data.SpriteBatch.Draw(
                 Texture,
                 Transform.Position,
@@ -19,5 +20,6 @@ public class SpriteComponent(Texture2D texture)
                 SpriteEffects.None,
                 0f
             );
+        }
     }
 }

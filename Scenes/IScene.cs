@@ -9,7 +9,6 @@ namespace Fizzleon.Scenes
     {
         GameState.GameStates SceneId { get; }
         World World { get; set; }
-        Entity SceneEntity { get; }
         SceneTransitionComponent TransitionComponent { get; set; }
 
         void Initialize();
@@ -20,5 +19,7 @@ namespace Fizzleon.Scenes
         void TransitionOut();
 
         bool IsSceneChangeRequested { get; set; }
+        bool IsInitialized { get; protected set; }
+
     }
 }
