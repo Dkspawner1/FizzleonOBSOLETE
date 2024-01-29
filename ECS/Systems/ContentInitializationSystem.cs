@@ -1,20 +1,14 @@
 ﻿
 using MonoGame.Extended.Content;
 using MonoGame.Extended.Entities;
-using MonoGame.Extended.Entities.Systems;
-using MonoGame.Extended.Sprites;
 using System.Collections.Generic;
-using System.Net.Http.Json;
-using MonoGame.Extended.Serialization;
 using System;
 
 namespace Fizzleon.ECS.Systems;
-public class ContentInitializationSystem : IDisposable
+public class ContentInitializationSystem(ContentManager content) : IDisposable
 {
     private readonly Dictionary<string, Texture2D> loadedTextures = new();
-    private protected ContentManager Content;
-
-    public ContentInitializationSystem(ContentManager content) => Content = content;
+    private protected ContentManager Content = content;
 
     public static ContentInitializationSystem Create(ContentManager content)
     {
@@ -23,7 +17,6 @@ public class ContentInitializationSystem : IDisposable
 
     public T Load<T>(string path, IContentLoader contentLoader)
     {
-
         return contentLoader.Load<T>(Content, path);
     }
     public T Load<T>(string assetName)

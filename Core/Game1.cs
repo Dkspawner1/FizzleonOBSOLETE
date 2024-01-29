@@ -1,48 +1,59 @@
-﻿using System.Runtime.InteropServices;
-using Fizzleon.ECS.Systems;
+﻿using Fizzleon.ECS.Systems;
 using Fizzleon.Managers;
-using Fizzleon.Network;
-using MonoGame.Extended.Content;
-using MonoGame.Extended.Input.InputListeners;
-using MonoGame.Extended.Serialization;
-using MonoGame.Extended.Sprites;
+using MonoGame.Extended.Screens;
+using System;
+using static Fizzleon.Core.Data;
+using ContentInitializationSystem = Fizzleon.ECS.Systems.ContentInitializationSystem;
+
+namespace Fizzleon.Core;
 
 public class Game1 : Game
 {
     private readonly SceneManager sceneManager;
+
+
     public Game1()
     {
         Data.GameTime = new GameTime();
-        Data.Graphics = new GraphicsDeviceManager(this);
+
+
+        Graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         Window.Title = Data.Window.Title;
+
+
         IsMouseVisible = true;
-        
-        Data.ContentInitializationSystem = ContentInitializationSystem.Create(Content);
 
-        sceneManager = new SceneManager(new TextureLoaderSystem(Content));
+        Data.ContentManager = Content;
+        Data.ContentInitializationSystem = ContentInitializationSystem.Create(Data.ContentManager);
 
-
+        sceneManager = new SceneManager(Graphics);
     }
+
+
 
     protected override void Initialize()
     {
-        Data.Graphics.PreferredBackBufferWidth = Data.Window.Width;
-        Data.Graphics.PreferredBackBufferHeight = Data.Window.Height;
-        Data.Graphics.ApplyChanges();
+        Graphics.PreferredBackBufferWidth = Data.Window.Width;
+        Graphics.PreferredBackBufferHeight = Data.Window.Height;
+        Graphics.ApplyChanges();
 
+#if DEBUG
+        Window.AllowUserResizing = true;
+#endif
 
-        sceneManager.Initialize();
+        sceneManager.InitializeScenes();
+        sceneManager.SubscribeToSceneEvents();
 
         base.Initialize();
-
     }
+
 
     protected override void LoadContent()
     {
         Data.SpriteBatch = new SpriteBatch(GraphicsDevice);
 
-        // Load content for the SceneManager
+
         sceneManager.LoadContent();
 
         base.LoadContent();
@@ -62,19 +73,22 @@ public class Game1 : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.DarkBlue * 0.2f);
-
-        // Draw SceneManager
-        sceneManager.Draw();
 
         base.Draw(gameTime);
     }
 
     protected override void UnloadContent()
     {
-        // Dispose of scenes in the SceneManager
-        sceneManager.ForEach(scene => scene.Dispose());
+        sceneManager.Dispose();
 
         base.UnloadContent();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+            sceneManager?.Dispose();
+
+        base.Dispose(disposing);
     }
 }

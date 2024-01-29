@@ -1,17 +1,13 @@
-﻿using Fizzleon.ECS;
-using MonoGame.Extended.Entities.Systems;
+﻿using Fizzleon.ECS.Components;
 using MonoGame.Extended.Entities;
-using Fizzleon.ECS.Components;
+using MonoGame.Extended.Entities.Systems;
 
-public class MovementSystem : EntityUpdateSystem
+namespace Fizzleon.ECS.Systems;
+
+public class MovementSystem() : EntityUpdateSystem(Aspect.All(typeof(TransformComponent), typeof(MovementComponent)))
 {
     private ComponentMapper<TransformComponent> transformMapper;
     private ComponentMapper<MovementComponent> movementMapper;
-
-    public MovementSystem()
-        : base(Aspect.All(typeof(TransformComponent), typeof(MovementComponent)))
-    {
-    }
 
     public override void Initialize(IComponentMapperService mapperService)
     {
